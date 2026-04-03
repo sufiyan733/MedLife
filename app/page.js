@@ -531,7 +531,7 @@ function UserMenu({ session }) {
             <p className="text-slate-400 text-[11px] truncate">{user.email}</p>
           </div>
           <div className="p-1.5">
-            {[{ href: "/profile", label: "My Profile" }, { href: "/dashboard", label: "Dashboard" }, { href: "/health-profile", label: "Health Profile" }].map(item => (
+            {[{ href: "/profile", label: "My Profile" }, { href: "/dashboard", label: "Dashboard" }, { href: "/profile", label: "Health Profile" }].map(item => (
               <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12.5px] text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">{item.label}</Link>
             ))}
             <div className="h-px bg-slate-100 my-1" />
@@ -837,7 +837,7 @@ const filtered = filter === "All"
                   <span key={tag} className="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-white border border-emerald-200 text-emerald-700">{tag}</span>
                 ))}
               </div>
-              <Link href={isLoggedIn ? "/health-profile" : "/sign-up"} className="inline-flex items-center gap-2 px-6 py-3 text-[13px] font-bold text-white rounded-xl transition-all hover:opacity-90 w-fit" style={{ background: "linear-gradient(135deg,#16a34a,#059669)" }}>
+              <Link href={isLoggedIn ? "/profile" : "/sign-up"} className="inline-flex items-center gap-2 px-6 py-3 text-[13px] font-bold text-white rounded-xl transition-all hover:opacity-90 w-fit" style={{ background: "linear-gradient(135deg,#16a34a,#059669)" }}>
                 {isLoggedIn ? "Update Health Profile →" : "Create Profile →"}
               </Link>
             </div>

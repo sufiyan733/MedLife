@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchFromOverpass, parseElement, haversine } from "./useHospitals";
+import { parseElement, haversine } from "./useHospitals";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MapLocationPicker } from "./MapLocationPicker";
 

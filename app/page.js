@@ -342,11 +342,11 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
     }
   };
 
-  const panelStyle = isMobile
-    ? { position: "fixed", inset: 0, zIndex: 50, borderRadius: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", boxShadow: "none" }
+ const panelStyle = isMobile
+    ? { position: "fixed", bottom: "84px", left: "12px", right: "12px", zIndex: 50, borderRadius: "20px", height: "min(520px, calc(100vh - 120px))", display: "flex", flexDirection: "column", boxShadow: "0 32px 80px rgba(0,0,0,0.28),0 8px 24px rgba(0,0,0,0.12)", overflow: "hidden" }
     : { position: "fixed", bottom: "104px", right: "28px", zIndex: 50, width: "min(420px, calc(100vw - 56px))", height: "min(580px, calc(100vh - 140px))", borderRadius: "24px", display: "flex", flexDirection: "column", boxShadow: "0 40px 100px rgba(0,0,0,0.22),0 8px 32px rgba(0,0,0,0.12),inset 0 0 0 1px rgba(255,255,255,0.1)", overflow: "hidden" };
-
-  const fabStyle = isMobile
+  
+    const fabStyle = isMobile
     ? { position: "fixed", bottom: "20px", right: "20px", zIndex: 51 }
     : { position: "fixed", bottom: "28px", right: "28px", zIndex: 50 };
 
@@ -386,19 +386,17 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
         .cw-noise { position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0.04; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
       `}</style>
 
-      {!(open && isMobile) && (
-        <div className="cw-fab" style={fabStyle}>
-          <button className="cw-fab-btn" onClick={() => setOpen(o => !o)}
-            style={{ width: "56px", height: "56px", borderRadius: "18px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-            <span style={{ fontSize: "24px", lineHeight: 1, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}>
-              {open && !isMobile ? "✕" : open ? null : "🩺"}
-            </span>
-            {!open && (
-              <span style={{ position: "absolute", top: "-4px", right: "-4px", width: "13px", height: "13px", borderRadius: "50%", background: "#4ade80", border: "2.5px solid white", animation: "orbPulse 2s ease-in-out infinite" }} />
-            )}
-          </button>
-        </div>
-      )}
+      <div className="cw-fab" style={fabStyle}>
+        <button className="cw-fab-btn" onClick={() => setOpen(o => !o)}
+          style={{ width: "56px", height: "56px", borderRadius: "18px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+          <span style={{ fontSize: "24px", lineHeight: 1, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}>
+            {open ? "✕" : "🩺"}
+          </span>
+          {!open && (
+            <span style={{ position: "absolute", top: "-4px", right: "-4px", width: "13px", height: "13px", borderRadius: "50%", background: "#4ade80", border: "2.5px solid white", animation: "orbPulse 2s ease-in-out infinite" }} />
+          )}
+        </button>
+      </div>
 
       {open && (
         <div className="cw-wrap" style={panelStyle}>
@@ -422,9 +420,7 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
                     <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "10px", fontWeight: 700, maxWidth: "70px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userAddress.split(",")[0]}</span>
                   </div>
                 )}
-                {isMobile && (
-                  <button onClick={() => setOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "10px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "14px", cursor: "pointer" }}>✕</button>
-                )}
+               
               </div>
             </div>
 

@@ -110,6 +110,7 @@ export function useHospitals(userLat, userLng, radiusKm = 15) {
   const [hospitals, setHospitals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const load = useCallback(async () => {
     if (!userLat || !userLng) return;
@@ -121,16 +122,31 @@ export function useHospitals(userLat, userLng, radiusKm = 15) {
         .map((el, i) => parseElement(el, i, userLat, userLng))
         .filter(Boolean)
         .sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
+      
+      // If we got 0 results, treat it as a soft error and retry
+      if (parsed.length === 0 && retryCount < 3) {
+        setRetryCount(r => r + 1);
+        return;
+      }
+
       setHospitals(parsed);
     } catch (e) {
-      setError("Could not load hospitals. Check your connection.");
+      if (retryCount < 3) {
+        // Auto-retry on failure
+        setTimeout(() => setRetryCount(r => r + 1), 2000);
+      } else {
+        setError("Could not load hospitals. Check your connection.");
+      }
       setHospitals([]);
     } finally {
       setLoading(false);
     }
-  }, [userLat, userLng, radiusKm]);
+  }, [userLat, userLng, radiusKm, retryCount]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Reset retryCount when location changes so fresh attempts start from 0
+  useEffect(() => { setRetryCount(0); }, [userLat, userLng]);
 
   return { hospitals, loading, error, reload: load };
 }

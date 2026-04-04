@@ -694,12 +694,9 @@ export default function LandingPage() {
     );
   }, [reverseGeocode]);
 
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.permissions.query({ name: "geolocation" }).then((result) => {
-      if (result.state !== "denied") requestLocation();
-    });
-  }, [requestLocation]);
+ useEffect(() => {
+  requestLocation();
+}, [requestLocation]);
 
   const handleManualLocation = useCallback(({ lat, lng, address }) => {
     setUserLocation({ lat, lng });

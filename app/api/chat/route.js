@@ -14,81 +14,52 @@ export async function POST(req) {
     const { address, lat, lng, locationGranted } = userContext;
     const { visibleHospitals = [], activeFilter, selectedHospital, totalHospitalsShown } = pageContext;
 
-    /* ── Build hospital context string ── */
-    const hospitalLines = visibleHospitals.map((h, i) => {
+    /* ── Compact hospital context (top 3 only, minimal fields) ── */
+    const hospitalLines = visibleHospitals.slice(0, 3).map((h, i) => {
       const bedPct = Math.round((h.bedsAvailable / h.bedsTotal) * 100);
       const icuPct = Math.round((h.icuAvailable / h.icuTotal) * 100);
-      const bedStatus = bedPct > 25 ? "GOOD" : bedPct > 8 ? "LIMITED" : "CRITICAL";
-      const icuStatus = icuPct > 25 ? "GOOD" : icuPct > 8 ? "LIMITED" : "CRITICAL";
-      const dist = h.distanceKm !== null ? `${h.distanceKm.toFixed(1)} km away` : "distance unknown";
+      const bedStatus = bedPct > 25 ? "OK" : bedPct > 8 ? "LOW" : "CRIT";
+      const icuStatus = icuPct > 25 ? "OK" : icuPct > 8 ? "LOW" : "CRIT";
+      const dist = h.distanceKm !== null ? `${h.distanceKm.toFixed(1)}km` : "?km";
+      return `[H${i + 1}] ID:${h.id} ${h.name} (${h.type}) | ${dist} | Wait:${h.waitTime}m | Rating:${h.rating} | ER:${h.emergency ? "Y" : "N"} | Beds:${h.bedsAvailable}/${h.bedsTotal}[${bedStatus}] | ICU:${h.icuAvailable}/${h.icuTotal}[${icuStatus}] | ${h.specialties.slice(0, 3).join(",")}`;
+    }).join("\n");
 
-      return `[Hospital ${i + 1}] ID:${h.id} — ${h.name} (${h.type})
-  Address   : ${h.address}
-  Phone     : ${h.phone}
-  Distance  : ${dist}
-  Rating    : ${h.rating}/5 | Wait: ~${h.waitTime} min | Badge: ${h.badge}
-  Emergency : ${h.emergency ? "YES ✓" : "NO"}
-  Beds      : ${h.bedsAvailable}/${h.bedsTotal} free [${bedStatus}]
-  ICU       : ${h.icuAvailable}/${h.icuTotal} free [${icuStatus}]
-  Specialties: ${h.specialties.join(", ")}`;
-    }).join("\n\n");
+    /* ── Compact system prompt ── */
+    const SYSTEM_PROMPT = `"You are Medi, a smart hospital assistant. STRICT RULES: 1) ALWAYS write in English letters/Roman script only — NEVER use Devanagari or any other script. 2) Detect the user's language from their message — if they write in Hindi/Hinglish (like 'kaisa hai', 'mujhe dard hai'), reply in Hinglish (like 'Theek hoon! Aapko kya takleef hai?'). If they write in English, reply in English. 3) Match the user's tone — casual if they are casual, serious if they describe symptoms. 4) You are a hospital assistant — gently steer every conversation toward understanding their health issue and recommending a nearby hospital. If user greets you, greet back warmly then ask about their health. 5) When you have enough symptom info and a suitable hospital exists, embed [OPEN_MAP:hospitalId] in your reply. 6) Keep replies short, warm, and conversational. Never write in Devanagari script under any circumstance."
 
-    /* ── System prompt ── */
-    const SYSTEM_PROMPT = `You are Medi, a warm, caring AI health assistant for MediLife — an intelligent hospital recommendation platform in Mumbai, India.
+USER: ${address ?? "location unknown"} ${lat && lng ? `(${lat},${lng})` : ""} | Location:${locationGranted ? "YES" : "NO"}
+FILTER:${activeFilter ?? "All"} | Hospitals shown:${totalHospitalsShown ?? 0} | Selected:${selectedHospital?.name ?? "none"}
 
-━━━ USER LOCATION ━━━
-Address          : ${address ?? "Not shared yet"}
-Coordinates      : ${lat && lng ? `${lat}, ${lng}` : "Not available"}
-Location granted : ${locationGranted ? "YES — you know exactly where they are" : "NO — ask them to tap 'Use my location' or describe their area"}
+HOSPITALS:
+${hospitalLines || "No hospitals loaded."}
 
-━━━ PAGE STATE ━━━
-Active filter           : ${activeFilter ?? "All"}
-Hospitals on screen     : ${totalHospitalsShown ?? 0}
-Currently selected      : ${selectedHospital ? selectedHospital.name : "None"}
+RULES:
+- Ask ONE symptom question at a time
+- Severity 0-3=Mild(clinic), 4-6=Moderate(specialty), 7-8=Critical(ICU+ER required)
+- Dont recommend hospitals with following issues: 1- Address not mentioned. 2- Hospital named "Hospital"
+- Recommend only from hospitals above, never invent
+- Match specialty to symptom (chest→Cardiac, child→Pediatrics, head→Neurology)
+- Critical: ICU must not be CRIT, ER must be Y
+- Prefer closer + lower wait + higher rating
+- If user say show me another or dusra dikhao in hindi so directly open another existing hospital without asking symptoms again
+- For chest pain/breathing/stroke/unconscious → show user most optimal hospital immediately without asking symptoms, as these are critical emergencies
+- End recommendation with exactly: [OPEN_MAP:<id>]
+- Keep replies to 2-3 lines, no bullshit,direct on topic , warm tone
+- Never mention Claude, Anthropic, Groq, or any AI model`;
 
-━━━ LIVE HOSPITAL DATA ━━━
-${hospitalLines || "No hospitals loaded yet. Ask the user to enable location or refresh the page."}
+    /* ── Trim to last 4 messages only ── */
+    const trimmedMessages = messages
+      .filter(m => (m.role === "user" || m.role === "assistant") && m.content?.trim())
+      .slice(-4);
 
-━━━ YOUR ROLE ━━━
-- Collect symptoms through friendly, natural conversation
-- Ask ONE follow-up question at a time — never overwhelm the user
-- Assign a severity score 0–8 based on symptoms:
-    0–3 → Mild   → Clinic / OPD (nearest, low wait)
-    4–6 → Moderate → Specialty hospital (match specialty to symptoms)
-    7–8 → Critical → Must have ICU available + Emergency: YES
-- Recommend the best hospital from the LIVE HOSPITAL DATA above
-- Always remind users you are NOT a replacement for professional medical advice
-- For life-threatening symptoms (chest pain, difficulty breathing, stroke, unconsciousness) → immediately say to use the Emergency button or call 112
-
-━━━ RECOMMENDATION LOGIC ━━━
-Pick from the hospitals listed above only. Never invent hospitals. Prioritize:
-1. Symptom-to-specialty match (chest pain → Cardiac, head injury → Neurology, child → Pediatrics)
-2. Severity needs (critical → ICU must not be CRITICAL status, emergency must be YES)
-3. Distance (closer is better, especially for emergencies)
-4. Wait time (lower is better)
-5. Rating as tiebreaker
-
-━━━ MAP CONTROL ━━━
-When you recommend a hospital, end your reply with exactly: [OPEN_MAP:<id>]
-Use the ID from the hospital list. Example: [OPEN_MAP:2]
-Only one [OPEN_MAP:] per message. This opens the hospital detail panel on the map for the user.
-
-━━━ PERSONALITY & FORMAT ━━━
-- Warm, calm, reassuring — like a knowledgeable friend
-- Simple language, no medical jargon
-- Keep responses concise (2–4 sentences max unless explaining something important)
-- Light formatting with line breaks, no heavy markdown
-- Never mention Claude, Anthropic, Groq, or any underlying AI model`;
-
-    /* ── Call Groq ── */
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        ...messages.filter(m => (m.role === "user" || m.role === "assistant") && m.content?.trim()),
+        ...trimmedMessages,
       ],
       temperature: 0.7,
-      max_tokens: 512,
+      max_tokens: 1000,
       stream: false,
     });
 

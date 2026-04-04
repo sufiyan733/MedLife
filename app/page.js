@@ -54,7 +54,6 @@ function DirectionModal({ hospital, userLat, userLng, onClose }) {
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }}>
       <div className="bg-white w-full sm:max-w-xl overflow-hidden shadow-2xl flex flex-col"
         style={{ borderRadius: "20px 20px 0 0", maxHeight: "92vh" }}
-        /* On sm+ screens: rounded all corners */
       >
         <style>{`.dir-modal-inner{border-radius:20px 20px 0 0} @media(min-width:640px){.dir-modal-inner{border-radius:16px}}`}</style>
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
@@ -96,14 +95,14 @@ function DirectionModal({ hospital, userLat, userLng, onClose }) {
 
 /* ─────────────────────── HospitalCard ──────────────────────── */
 function HospitalCard({ h, onSelect, isSelected, userLat, userLng }) {
-  const [showDir, setShowDir] = useState(false);
+ 
   const waitColor =
     h.waitTime <= 15 ? { bg: "rgba(20,184,166,0.08)", text: "#0d9488" } :
     h.waitTime <= 30 ? { bg: "rgba(234,179,8,0.08)", text: "#a16207" } :
                        { bg: "rgba(239,68,68,0.08)", text: "#dc2626" };
   return (
     <>
-      {showDir && <DirectionModal hospital={h} userLat={userLat} userLng={userLng} onClose={() => setShowDir(false)} />}
+      
       <div
         className="group relative bg-white rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer flex flex-col"
         style={{
@@ -160,11 +159,6 @@ function HospitalCard({ h, onSelect, isSelected, userLat, userLng }) {
                 className="w-7 h-7 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 7V5z" /></svg>
               </a>
-              <button onClick={e => { e.stopPropagation(); setShowDir(true); }}
-                className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold text-white transition-all hover:opacity-90"
-                style={{ background: h.accentHex }}>
-                🗺 Dir
-              </button>
               <button onClick={e => { e.stopPropagation(); onSelect(h); }}
                 className="px-2 py-1.5 text-[10px] font-bold rounded-lg transition-all"
                 style={{ background: `${h.accentHex}12`, color: h.accentHex }}>
@@ -179,10 +173,7 @@ function HospitalCard({ h, onSelect, isSelected, userLat, userLng }) {
 }
 
 /* ─────────────────────── MapPanel ──────────────────────────── */
-/* On mobile: renders as a bottom-sheet modal overlay
-   On md+: renders as a sticky side panel                        */
 function MapPanel({ hospital, onClose, userLat, userLng, isMobileSheet }) {
-  const [showDir, setShowDir] = useState(false);
   if (!hospital) return null;
   const delta = 0.022;
   const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${hospital.lng - delta},${hospital.lat - delta * 0.7},${hospital.lng + delta},${hospital.lat + delta * 0.7}&layer=mapnik&marker=${hospital.lat},${hospital.lng}`;
@@ -228,8 +219,7 @@ function MapPanel({ hospital, onClose, userLat, userLng, isMobileSheet }) {
         ))}
       </div>
 
-      <div className="p-4 grid grid-cols-2 gap-3 border-t border-slate-100 flex-shrink-0">
-        <button onClick={() => setShowDir(true)} className="flex items-center justify-center gap-2 py-3 rounded-xl text-[13px] font-bold text-white hover:opacity-90 transition-all" style={{ background: hospital.accentHex }}>🗺 Directions</button>
+      <div className="p-4 grid grid-cols-1 gap-3 border-t border-slate-100 flex-shrink-0">
         <a href={`tel:${hospital.phone}`} className="flex items-center justify-center gap-2 py-3 rounded-xl text-[13px] font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all">📞 Call Now</a>
       </div>
     </div>
@@ -238,13 +228,10 @@ function MapPanel({ hospital, onClose, userLat, userLng, isMobileSheet }) {
   if (isMobileSheet) {
     return (
       <>
-        {showDir && <DirectionModal hospital={hospital} userLat={userLat} userLng={userLng} onClose={() => setShowDir(false)} />}
-        {/* Backdrop */}
+       
         <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} style={{ backdropFilter: "blur(2px)" }} />
-        {/* Sheet */}
         <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col overflow-hidden"
           style={{ borderRadius: "20px 20px 0 0", maxHeight: "88vh", boxShadow: "0 -8px 40px rgba(0,0,0,0.18)", animation: "sheetUp 0.3s cubic-bezier(.16,1,.3,1) both" }}>
-          {/* Drag handle */}
           <div className="bg-white flex justify-center pt-3 pb-1 flex-shrink-0">
             <div className="w-10 h-1 rounded-full bg-slate-200" />
           </div>
@@ -256,7 +243,7 @@ function MapPanel({ hospital, onClose, userLat, userLng, isMobileSheet }) {
 
   return (
     <>
-      {showDir && <DirectionModal hospital={hospital} userLat={userLat} userLng={userLng} onClose={() => setShowDir(false)} />}
+      
       {inner}
     </>
   );
@@ -264,10 +251,10 @@ function MapPanel({ hospital, onClose, userLat, userLng, isMobileSheet }) {
 
 /* ─────────────────────── ChatWidget ────────────────────────── */
 export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, hospitals, activeFilter, selectedHospital, locationStatus }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([{
     role: "assistant",
-    content: "Hi, I'm Medi 👋\n\nDescribe your symptoms and I'll match you with the best hospital nearby."
+    content: "Namaste! Main Medi hoon 👋"
   }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -275,7 +262,6 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Detect mobile viewport
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
@@ -295,28 +281,48 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
     setMessages(newMessages);
     setInput("");
     setLoading(true);
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: newMessages,
-          userContext: { address: userAddress || null, lat: userLat || null, lng: userLng || null, locationGranted: locationStatus === "granted" },
+          messages: newMessages.slice(-4),
+          userContext: {
+            address: userAddress || null,
+            lat: userLat || null,
+            lng: userLng || null,
+            locationGranted: locationStatus === "granted"
+          },
           pageContext: {
-            visibleHospitals: (hospitals || []).map(h => ({
-              id: h.id, name: h.name, type: h.type, distanceKm: h.distanceKm ?? null, rating: h.rating,
-              waitTime: h.waitTime, bedsAvailable: h.beds.available, bedsTotal: h.beds.total,
-              icuAvailable: h.icu.available, icuTotal: h.icu.total, emergency: h.emergency,
-              specialties: h.specialties, address: h.address, phone: h.phone, badge: h.badge,
+            visibleHospitals: (hospitals || []).slice(0, 3).map(h => ({
+              id: h.id,
+              name: h.name,
+              type: h.type,
+              distanceKm: h.distanceKm ?? null,
+              rating: h.rating,
+              waitTime: h.waitTime,
+              bedsAvailable: h.beds.available,
+              bedsTotal: h.beds.total,
+              icuAvailable: h.icu.available,
+              icuTotal: h.icu.total,
+              emergency: h.emergency,
+              specialties: h.specialties.slice(0, 3),
+              address: h.address,
+              phone: h.phone,
+              badge: h.badge,
             })),
-            activeFilter, selectedHospital: selectedHospital ? { id: selectedHospital.id, name: selectedHospital.name } : null,
+            activeFilter,
+            selectedHospital: selectedHospital ? { id: selectedHospital.id, name: selectedHospital.name } : null,
             totalHospitalsShown: (hospitals || []).length,
           },
         }),
       });
+
       const data = await res.json();
       let reply = data.reply || "Sorry, something went wrong.";
       const mapMatch = reply.match(/\[OPEN_MAP:(\d+)\]/);
+
       if (mapMatch) {
         const hospId = parseInt(mapMatch[1]);
         reply = reply.replace(/\[OPEN_MAP:\d+\]/g, "").trim();
@@ -332,10 +338,10 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
       setMessages(p => [...p, { role: "assistant", content: "Connection error. Please try again." }]);
     } finally {
       setLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 150);
     }
   };
 
-  // Panel dimensions — full screen on mobile, floating on desktop
   const panelStyle = isMobile
     ? { position: "fixed", inset: 0, zIndex: 50, borderRadius: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", boxShadow: "none" }
     : { position: "fixed", bottom: "104px", right: "28px", zIndex: 50, width: "min(420px, calc(100vw - 56px))", height: "min(580px, calc(100vh - 140px))", borderRadius: "24px", display: "flex", flexDirection: "column", boxShadow: "0 40px 100px rgba(0,0,0,0.22),0 8px 32px rgba(0,0,0,0.12),inset 0 0 0 1px rgba(255,255,255,0.1)", overflow: "hidden" };
@@ -355,7 +361,6 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
         @keyframes ringPop { 0%{transform:scale(0.85);opacity:0} 60%{transform:scale(1.05);opacity:1} 100%{transform:scale(1);opacity:1} }
         @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
         @keyframes gradShift{ 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-        @keyframes sheetUp  { from{transform:translateY(100%)} to{transform:translateY(0)} }
         .cw-wrap { animation:floatUp 0.32s cubic-bezier(.16,1,.3,1) both; font-family:'Cabinet Grotesk',sans-serif; }
         .cw-msg  { animation:msgIn 0.24s cubic-bezier(.16,1,.3,1) both; }
         .cw-dot  { animation:dotDance 1.2s ease-in-out infinite; }
@@ -381,26 +386,22 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
         .cw-noise { position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0.04; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
       `}</style>
 
-      {/* FAB */}
       {!(open && isMobile) && (
-<div className="cw-fab" style={fabStyle}>
-        <button className="cw-fab-btn" onClick={() => setOpen(o => !o)}
-          style={{ width: "56px", height: "56px", borderRadius: "18px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-          <span style={{ fontSize: "24px", lineHeight: 1, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}>
-            {open && !isMobile ? "✕" : open ? null : "🩺"}
-          </span>
-          {!open && (
-            <span style={{ position: "absolute", top: "-4px", right: "-4px", width: "13px", height: "13px", borderRadius: "50%", background: "#4ade80", border: "2.5px solid white", animation: "orbPulse 2s ease-in-out infinite" }} />
-          )}
-        </button>
-      </div>
-       )}
+        <div className="cw-fab" style={fabStyle}>
+          <button className="cw-fab-btn" onClick={() => setOpen(o => !o)}
+            style={{ width: "56px", height: "56px", borderRadius: "18px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+            <span style={{ fontSize: "24px", lineHeight: 1, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}>
+              {open && !isMobile ? "✕" : open ? null : "🩺"}
+            </span>
+            {!open && (
+              <span style={{ position: "absolute", top: "-4px", right: "-4px", width: "13px", height: "13px", borderRadius: "50%", background: "#4ade80", border: "2.5px solid white", animation: "orbPulse 2s ease-in-out infinite" }} />
+            )}
+          </button>
+        </div>
+      )}
 
-      {/* PANEL */}
       {open && (
         <div className="cw-wrap" style={panelStyle}>
-
-          {/* HEADER */}
           <div className="cw-header-bg" style={{ padding: "14px 16px 12px", position: "relative", flexShrink: 0 }}>
             <div className="cw-noise" />
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
@@ -441,7 +442,6 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
             </div>
           </div>
 
-          {/* MESSAGES */}
           <div className="cw-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 12px 8px", display: "flex", flexDirection: "column", gap: "10px", background: "#f0fdf4" }}>
             {messages.map((m, i) => (
               <div key={i} className="cw-msg" style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", alignItems: "flex-end", gap: "7px" }}>
@@ -472,7 +472,6 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
             <div ref={bottomRef} />
           </div>
 
-          {/* INPUT */}
           <div className="cw-input-wrap" style={{ padding: "8px 10px 10px", display: "flex", gap: "8px", alignItems: "center", flexShrink: 0 }}>
             <div style={{
               flex: 1, display: "flex", alignItems: "center",
@@ -488,8 +487,8 @@ export function ChatWidget({ onHospitalSelect, userAddress, userLat, userLng, ho
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
                 onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                placeholder="Describe your symptoms…"
+                onBlur={() => setTimeout(() => setFocused(false), 150)}
+                placeholder="Apne symptoms batayein…"
                 disabled={loading}
                 className="cw-input"
                 style={{ flex: 1, background: "transparent", border: "none", fontSize: "13px", fontWeight: 500, color: "#1a2e1a", opacity: loading ? 0.5 : 1 }}
@@ -556,6 +555,8 @@ function UserMenu({ session }) {
   );
 }
 
+
+
 /* ─────────────────────── Page ───────────────────────────────── */
 export default function LandingPage() {
   const { data: session, isPending: sessionLoading } = useSession();
@@ -567,11 +568,18 @@ export default function LandingPage() {
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [mapOpen, setMapOpen]               = useState(false);
   const [filter, setFilter]                 = useState("All");
-  const [radiusKm, setRadiusKm]             = useState(10);
+  const [radiusKm, setRadiusKm]             = useState(5);
   const [highlightedIds, setHighlightedIds] = useState([]);
   const [emergencyOpen, setEmergencyOpen]   = useState(false);
   const [showMapPicker, setShowMapPicker]   = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  /* ── Auto-scroll state ── */
+  const [autoScrollCountdown, setAutoScrollCountdown] = useState(4);
+  const [autoScrollDone, setAutoScrollDone]           = useState(false);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+  const autoScrollTimerRef = useRef(null);
+  const countdownIntervalRef = useRef(null);
 
   // Track viewport width for responsive map/panel behaviour
   const [viewportWidth, setViewportWidth] = useState(
@@ -582,8 +590,82 @@ export default function LandingPage() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-  const isMobile  = viewportWidth < 640;   // < sm
-  const isTablet  = viewportWidth < 1024;  // < lg
+  const isMobile  = viewportWidth < 640;
+  const isTablet  = viewportWidth < 1024;
+
+  /* ── Auto-scroll to #hospitals after 4s with 3s CSS transition ── */
+  useEffect(() => {
+    if (autoScrollDone) return;
+
+    // Tick countdown every second
+    countdownIntervalRef.current = setInterval(() => {
+      setAutoScrollCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownIntervalRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Fire scroll after 4s
+    autoScrollTimerRef.current = setTimeout(() => {
+      setShowScrollIndicator(false);
+      setAutoScrollDone(true);
+
+      const target = document.getElementById("hospitals");
+      if (!target) return;
+
+      const targetY = target.getBoundingClientRect().top + window.scrollY - 64; // offset for sticky header
+      const startY  = window.scrollY;
+      const distance = targetY - startY;
+      const duration = 3000; // 3 seconds
+      let startTime = null;
+
+      // Cubic ease-in-out for silky smooth feel
+      function easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased   = easeInOutCubic(progress);
+        window.scrollTo(0, startY + distance * eased);
+        if (progress < 1) requestAnimationFrame(step);
+      }
+
+      requestAnimationFrame(step);
+    }, 1000);
+
+    return () => {
+      clearTimeout(autoScrollTimerRef.current);
+      clearInterval(countdownIntervalRef.current);
+    };
+  }, []); // run once on mount
+
+  // If user scrolls manually, cancel the auto-scroll
+  useEffect(() => {
+    if (autoScrollDone) return;
+    const handleScroll = () => {
+      if (window.scrollY > 60) {
+        clearTimeout(autoScrollTimerRef.current);
+        clearInterval(countdownIntervalRef.current);
+        setShowScrollIndicator(false);
+        setAutoScrollDone(true);
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [autoScrollDone]);
+
+  const handleSkipAutoScroll = useCallback(() => {
+    clearTimeout(autoScrollTimerRef.current);
+    clearInterval(countdownIntervalRef.current);
+    setShowScrollIndicator(false);
+    setAutoScrollDone(true);
+  }, []);
 
   const { hospitals, loading: hospitalsLoading, error: hospitalsError } = useHospitals(
     userLocation?.lat, userLocation?.lng, radiusKm
@@ -651,11 +733,9 @@ export default function LandingPage() {
         return h.specialties.some(s => keywords.some(kw => s.toLowerCase().includes(kw)));
       });
 
-  // On mobile/tablet, mapOpen renders as a bottom sheet instead of side panel
   const mapAsSidePanel = mapOpen && !isTablet;
   const mapAsSheet     = mapOpen && isTablet;
 
-  // Hospital grid columns
   const gridCols = mapAsSidePanel
     ? "grid-cols-1"
     : isMobile
@@ -682,35 +762,32 @@ export default function LandingPage() {
         @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
         @keyframes mobileMenuIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
         .mobile-menu-in{animation:mobileMenuIn 0.2s ease both}
+        @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px) scale(0.95)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+        @keyframes toastOut{from{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}to{opacity:0;transform:translateX(-50%) translateY(20px) scale(0.95)}}
         ::-webkit-scrollbar{width:5px;height:5px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
-
-        /* Horizontal scroll filter row */
         .filter-scroll{display:flex;overflow-x:auto;gap:8px;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
         .filter-scroll::-webkit-scrollbar{display:none}
         .filter-scroll button, .filter-scroll select, .filter-scroll a{flex-shrink:0}
       `}</style>
 
+
       {/* ── HEADER ── */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md" style={{ borderBottom: "1px solid #edf0f2" }}>
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
-          {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white font-black text-sm" style={{ background: "linear-gradient(135deg,#16a34a,#059669)" }}>+</div>
             <span className="display text-[16px] sm:text-[17px] font-extrabold text-slate-900">Medi<span style={{ color: "#16a34a" }}>Life</span></span>
           </div>
 
-          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6 text-[13px] font-medium text-slate-400">
             {[["#hospitals", "Hospitals"], ["#emergency", "Emergency"]].map(([href, label]) => (
               <a key={href} href={href} className="hover:text-slate-800 transition-colors">{label}</a>
             ))}
           </nav>
 
-          {/* Right side */}
           <div className="flex items-center gap-2">
-            {/* Emergency always visible */}
             <button onClick={() => setEmergencyOpen(true)}
               className="pulse-ring flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-[11px] sm:text-[12px] font-bold rounded-xl transition-all">
               <span className="w-1.5 h-1.5 rounded-full bg-white/80" />
@@ -728,14 +805,12 @@ export default function LandingPage() {
                   </>
             )}
 
-            {/* Mobile hamburger for nav links */}
             <button className="md:hidden w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 bg-white" onClick={() => setMobileMenuOpen(o => !o)}>
               {mobileMenuOpen ? "✕" : "☰"}
             </button>
           </div>
         </div>
 
-        {/* Mobile nav dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden mobile-menu-in bg-white border-t border-slate-100 px-4 py-3 flex flex-col gap-2">
             {[["#hospitals", "🏥 Hospitals"], ["#emergency", "🚨 Emergency"]].map(([href, label]) => (
@@ -770,7 +845,6 @@ export default function LandingPage() {
             Tell Medi your symptoms — it matches you with the best hospital by severity, distance, and live bed availability.
           </p>
 
-          {/* CTA buttons */}
           <div className="fade-up fade-up-3 flex flex-col items-center gap-3 mb-10 sm:mb-14 px-4 sm:px-0">
             <button className="w-full sm:w-auto px-7 py-3.5 text-white text-[14px] font-bold rounded-xl hover:opacity-90 transition-all"
               style={{ background: "linear-gradient(135deg,#16a34a,#059669)", boxShadow: "0 6px 20px rgba(22,163,74,0.3)" }}>
@@ -799,7 +873,6 @@ export default function LandingPage() {
             </p>
           )}
 
-          {/* Stats */}
           <div className="grid grid-cols-3 gap-4 max-w-xs mx-auto">
             {[{ v: "Live", l: "OSM Hospital Data" }, { v: "<2 min", l: "Average match" }, { v: "98%", l: "Satisfaction" }].map(s => (
               <div key={s.l} className="text-center">
@@ -815,7 +888,6 @@ export default function LandingPage() {
       <section id="hospitals" className="py-10 sm:py-14 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
 
-          {/* Section header */}
           <div className="flex flex-col gap-3 mb-5 sm:mb-6">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
               <div>
@@ -832,7 +904,6 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              {/* Controls: always in a horizontal scroll row on mobile */}
               <div className="filter-scroll">
                 <button onClick={() => setShowMapPicker(true)}
                   className="flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-full transition-all border"
@@ -859,9 +930,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Main layout: side panel on desktop, sheet on mobile/tablet */}
           <div className={`flex gap-4 lg:gap-5 items-start`}>
-            {/* Cards column */}
             <div className={`transition-all duration-300 ${mapAsSidePanel ? "w-1/2" : "w-full"}`}>
               {hospitalsLoading && (
                 <div className="text-center py-16">
@@ -907,7 +976,6 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Side panel — desktop only */}
             {mapAsSidePanel && selectedHospital && (
               <div className="w-1/2 sticky top-20 rounded-2xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.1)] slide-right flex flex-col"
                 style={{ height: "calc(100vh - 5.5rem)", border: "1.5px solid #edf0f2" }}>
@@ -917,7 +985,6 @@ export default function LandingPage() {
             )}
           </div>
 
-          {/* Bottom sheet — mobile & tablet */}
           {mapAsSheet && selectedHospital && (
             <MapPanel hospital={selectedHospital}
               onClose={() => { setMapOpen(false); setSelectedHospital(null); }}

@@ -705,6 +705,7 @@ export function ChatWidget({
 
       <div className="cw-fab" style={fabStyle}>
         <button
+          id="medi-chat-fab"
           className="cw-fab-btn"
           onClick={() => setOpen((o) => !o)}
           style={{
@@ -1070,7 +1071,6 @@ export function ChatWidget({
                   >
                     {m.content}
                   </div>
-               
                 </div>
               </div>
             ))}
@@ -1739,6 +1739,16 @@ export default function LandingPage() {
 
           <div className="fade-up fade-up-3 flex flex-col items-center gap-3 mb-10 sm:mb-14 px-4 sm:px-0">
             <button
+              onClick={() => {
+                document.getElementById("medi-chat-fab")?.click();
+                setTimeout(
+                  () =>
+                    document
+                      .getElementById("hospitals")
+                      ?.scrollIntoView({ behavior: "smooth" }),
+                  300,
+                );
+              }}
               className="w-full sm:w-auto px-7 py-3.5 text-white text-[14px] font-bold rounded-xl hover:opacity-90 transition-all"
               style={{
                 background: "linear-gradient(135deg,#16a34a,#059669)",

@@ -508,8 +508,7 @@ export function ChatWidget({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [chips, setChips] = useState([
-  ]);
+  const [chips, setChips] = useState(["SYMPTOMS"]);
   const [showEmergency, setShowEmergency] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
@@ -596,10 +595,13 @@ export function ChatWidget({
 
       const data = await res.json();
       let reply = data.reply || "Sorry, something went wrong.";
-      const mapMatch = reply.match(/\[OPEN_MAP:(\d+)\]/);
+      const mapMatch = reply.match(/\[OPEN_MAP:([^\]]+)\]/);
 
       if (mapMatch) {
-        const hospIdx = parseInt(mapMatch[1]);
+        const raw = mapMatch[1]; // could be "H1", "H2", "0", "1"
+        const hospIdx = raw.startsWith("H")
+          ? parseInt(raw.slice(1)) - 1 // H1→0, H2→1, H3→2
+          : parseInt(raw); // 0→0, 1→1
         reply = reply.replace(/\[OPEN_MAP:\d+\]/g, "").trim();
         setMessages((p) => [
           ...p,
@@ -1068,17 +1070,7 @@ export function ChatWidget({
                   >
                     {m.content}
                   </div>
-                  {m.role === "assistant" && m.model && (
-                    <span
-                      style={{
-                        fontSize: "9px",
-                        color: "#94a3b8",
-                        paddingLeft: "4px",
-                      }}
-                    >
-                      via {m.model}
-                    </span>
-                  )}
+               
                 </div>
               </div>
             ))}

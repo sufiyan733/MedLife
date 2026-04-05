@@ -509,10 +509,6 @@ export function ChatWidget({
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
   const [chips, setChips] = useState([
-    "Fever",
-    "Chest pain",
-    "Accident",
-    "Breathing issue",
   ]);
   const [showEmergency, setShowEmergency] = useState(false);
   const bottomRef = useRef(null);

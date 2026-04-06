@@ -5,13 +5,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
 const INITIAL_HOSPITALS = [
-  { id: 1, name: 'Apollo Hospitals',      loc: 'Bandra, Mumbai',        beds: 284, maxBeds: 500, icu: 12, maxIcu: 40, status: 'open'     },
-  { id: 2, name: 'Kokilaben Hospital',    loc: 'Andheri West, Mumbai',  beds: 67,  maxBeds: 400, icu: 3,  maxIcu: 30, status: 'limited'  },
-  { id: 3, name: 'Lilavati Hospital',     loc: 'Bandra, Mumbai',        beds: 142, maxBeds: 350, icu: 18, maxIcu: 35, status: 'open'     },
-  { id: 4, name: 'Nanavati Hospital',     loc: 'Vile Parle, Mumbai',    beds: 12,  maxBeds: 300, icu: 0,  maxIcu: 25, status: 'critical' },
-  { id: 5, name: 'Breach Candy Hospital', loc: 'Breach Candy, Mumbai',  beds: 5,   maxBeds: 200, icu: 1,  maxIcu: 20, status: 'critical' },
-  { id: 6, name: 'Hinduja Hospital',      loc: 'Mahim, Mumbai',         beds: 89,  maxBeds: 320, icu: 9,  maxIcu: 28, status: 'open'     },
-  { id: 7, name: 'Wockhardt Hospital',    loc: 'South Mumbai',          beds: 34,  maxBeds: 280, icu: 4,  maxIcu: 22, status: 'limited'  },
+  { id: 1, name: 'Apollo Hospitals', loc: 'Bandra, Mumbai', beds: 284, maxBeds: 500, icu: 12, maxIcu: 40, status: 'open' },
+  { id: 2, name: 'Kokilaben Hospital', loc: 'Andheri West, Mumbai', beds: 67, maxBeds: 400, icu: 3, maxIcu: 30, status: 'limited' },
+  { id: 3, name: 'Lilavati Hospital', loc: 'Bandra, Mumbai', beds: 142, maxBeds: 350, icu: 18, maxIcu: 35, status: 'open' },
+  { id: 4, name: 'Nanavati Hospital', loc: 'Vile Parle, Mumbai', beds: 12, maxBeds: 300, icu: 0, maxIcu: 25, status: 'critical' },
+  { id: 5, name: 'Breach Candy Hospital', loc: 'Breach Candy, Mumbai', beds: 5, maxBeds: 200, icu: 1, maxIcu: 20, status: 'critical' },
+  { id: 6, name: 'Hinduja Hospital', loc: 'Mahim, Mumbai', beds: 89, maxBeds: 320, icu: 9, maxIcu: 28, status: 'open' },
+  { id: 7, name: 'Wockhardt Hospital', loc: 'South Mumbai', beds: 34, maxBeds: 280, icu: 4, maxIcu: 22, status: 'limited' },
 ];
 
 // Fetch real hospital data from DB on mount — merge with simulation
@@ -33,63 +33,63 @@ async function fetchAppointmentStats() {
 }
 
 const ALL_PATIENTS = [
-  { id: 1,  name: 'Rahul M., 54M',  sev: 'high', dest: 'Apollo Hospitals',      time: '2m ago',  eta: '8 min'  },
-  { id: 2,  name: 'Priya S., 28F',  sev: 'med',  dest: 'Lilavati Hospital',      time: '4m ago',  eta: '12 min' },
-  { id: 3,  name: 'Kiran D., 71M',  sev: 'high', dest: 'Kokilaben Hospital',     time: '6m ago',  eta: '15 min' },
-  { id: 4,  name: 'Meera T., 45F',  sev: 'low',  dest: 'Hinduja Hospital',       time: '9m ago',  eta: '19 min' },
-  { id: 5,  name: 'Arun P., 38M',   sev: 'med',  dest: 'Nanavati Hospital',      time: '11m ago', eta: '6 min'  },
-  { id: 6,  name: 'Sunita R., 62F', sev: 'high', dest: 'Apollo Hospitals',       time: '14m ago', eta: '22 min' },
-  { id: 7,  name: 'Dev K., 33M',    sev: 'low',  dest: 'Wockhardt Hospital',     time: '17m ago', eta: '9 min'  },
-  { id: 8,  name: 'Anita V., 48F',  sev: 'med',  dest: 'Breach Candy Hospital',  time: '20m ago', eta: '5 min'  },
+  { id: 1, name: 'Rahul M., 54M', sev: 'high', dest: 'Apollo Hospitals', time: '2m ago', eta: '8 min' },
+  { id: 2, name: 'Priya S., 28F', sev: 'med', dest: 'Lilavati Hospital', time: '4m ago', eta: '12 min' },
+  { id: 3, name: 'Kiran D., 71M', sev: 'high', dest: 'Kokilaben Hospital', time: '6m ago', eta: '15 min' },
+  { id: 4, name: 'Meera T., 45F', sev: 'low', dest: 'Hinduja Hospital', time: '9m ago', eta: '19 min' },
+  { id: 5, name: 'Arun P., 38M', sev: 'med', dest: 'Nanavati Hospital', time: '11m ago', eta: '6 min' },
+  { id: 6, name: 'Sunita R., 62F', sev: 'high', dest: 'Apollo Hospitals', time: '14m ago', eta: '22 min' },
+  { id: 7, name: 'Dev K., 33M', sev: 'low', dest: 'Wockhardt Hospital', time: '17m ago', eta: '9 min' },
+  { id: 8, name: 'Anita V., 48F', sev: 'med', dest: 'Breach Candy Hospital', time: '20m ago', eta: '5 min' },
 ];
 
 const ALERT_POOL = [
-  { hospital: 'Nanavati Hospital',     msg: '0 ICU beds remaining. Diverting critical cases.',          type: 'red'   },
-  { hospital: 'Breach Candy Hospital', msg: 'Only 5 beds available. Emergency overflow required.',      type: 'red'   },
-  { hospital: 'Wockhardt Hospital',    msg: 'ICU at 82% capacity. Escalation recommended.',             type: 'amber' },
-  { hospital: 'Kokilaben Hospital',    msg: 'Trauma bay at full capacity. Incoming diverted.',           type: 'red'   },
-  { hospital: 'Apollo Hospitals',      msg: 'Surge protocol active. Requesting 20 additional staff.',   type: 'amber' },
-  { hospital: 'Lilavati Hospital',     msg: 'Power unit B on backup generator. Monitoring.',            type: 'amber' },
-  { hospital: 'Hinduja Hospital',      msg: '3 ICU beds remaining. Critical intake paused.',            type: 'red'   },
-  { hospital: 'Nanavati Hospital',     msg: 'Blood bank stock critically low. Requesting transfer.',    type: 'red'   },
-  { hospital: 'Wockhardt Hospital',    msg: 'Ambulance queue at 7. ETA delays expected.',               type: 'amber' },
-  { hospital: 'Breach Candy Hospital', msg: 'Ventilator shortage reported. 2 units needed urgently.',   type: 'red'   },
+  { hospital: 'Nanavati Hospital', msg: '0 ICU beds remaining. Diverting critical cases.', type: 'red' },
+  { hospital: 'Breach Candy Hospital', msg: 'Only 5 beds available. Emergency overflow required.', type: 'red' },
+  { hospital: 'Wockhardt Hospital', msg: 'ICU at 82% capacity. Escalation recommended.', type: 'amber' },
+  { hospital: 'Kokilaben Hospital', msg: 'Trauma bay at full capacity. Incoming diverted.', type: 'red' },
+  { hospital: 'Apollo Hospitals', msg: 'Surge protocol active. Requesting 20 additional staff.', type: 'amber' },
+  { hospital: 'Lilavati Hospital', msg: 'Power unit B on backup generator. Monitoring.', type: 'amber' },
+  { hospital: 'Hinduja Hospital', msg: '3 ICU beds remaining. Critical intake paused.', type: 'red' },
+  { hospital: 'Nanavati Hospital', msg: 'Blood bank stock critically low. Requesting transfer.', type: 'red' },
+  { hospital: 'Wockhardt Hospital', msg: 'Ambulance queue at 7. ETA delays expected.', type: 'amber' },
+  { hospital: 'Breach Candy Hospital', msg: 'Ventilator shortage reported. 2 units needed urgently.', type: 'red' },
 ];
 
-const PATIENT_FIRST = ['Rahul','Priya','Kiran','Meera','Arun','Sunita','Dev','Anita','Rohit','Neha','Vikram','Sanjana','Amit','Pooja','Rajesh','Kavya','Suresh','Divya','Manish','Asha'];
-const PATIENT_LAST  = ['M.','S.','D.','T.','P.','R.','K.','V.','G.','B.'];
-const GENDERS       = ['M','F'];
-const DESTINATIONS  = ['Apollo Hospitals','Kokilaben Hospital','Lilavati Hospital','Hinduja Hospital','Wockhardt Hospital','Nanavati Hospital','Breach Candy Hospital'];
-const SEVERITIES    = ['high','high','med','med','med','low'];
-const ETAS          = ['4 min','6 min','8 min','11 min','14 min','18 min','22 min','26 min'];
+const PATIENT_FIRST = ['Rahul', 'Priya', 'Kiran', 'Meera', 'Arun', 'Sunita', 'Dev', 'Anita', 'Rohit', 'Neha', 'Vikram', 'Sanjana', 'Amit', 'Pooja', 'Rajesh', 'Kavya', 'Suresh', 'Divya', 'Manish', 'Asha'];
+const PATIENT_LAST = ['M.', 'S.', 'D.', 'T.', 'P.', 'R.', 'K.', 'V.', 'G.', 'B.'];
+const GENDERS = ['M', 'F'];
+const DESTINATIONS = ['Apollo Hospitals', 'Kokilaben Hospital', 'Lilavati Hospital', 'Hinduja Hospital', 'Wockhardt Hospital', 'Nanavati Hospital', 'Breach Candy Hospital'];
+const SEVERITIES = ['high', 'high', 'med', 'med', 'med', 'low'];
+const ETAS = ['4 min', '6 min', '8 min', '11 min', '14 min', '18 min', '22 min', '26 min'];
 
 let _patientId = 100;
 function genPatient() {
   const first = PATIENT_FIRST[Math.floor(Math.random() * PATIENT_FIRST.length)];
-  const last  = PATIENT_LAST[Math.floor(Math.random() * PATIENT_LAST.length)];
-  const age   = 18 + Math.floor(Math.random() * 62);
-  const gen   = GENDERS[Math.floor(Math.random() * 2)];
+  const last = PATIENT_LAST[Math.floor(Math.random() * PATIENT_LAST.length)];
+  const age = 18 + Math.floor(Math.random() * 62);
+  const gen = GENDERS[Math.floor(Math.random() * 2)];
   return {
-    id:   ++_patientId,
+    id: ++_patientId,
     name: `${first} ${last}, ${age}${gen}`,
-    sev:  SEVERITIES[Math.floor(Math.random() * SEVERITIES.length)],
+    sev: SEVERITIES[Math.floor(Math.random() * SEVERITIES.length)],
     dest: DESTINATIONS[Math.floor(Math.random() * DESTINATIONS.length)],
     time: 'just now',
-    eta:  ETAS[Math.floor(Math.random() * ETAS.length)],
+    eta: ETAS[Math.floor(Math.random() * ETAS.length)],
   };
 }
 
 const CHART_LABELS = ['6h', '5h', '4h', '3h', '2h', '1h', 'Now', '+1h', '+2h', '+3h', '+4h'];
-const CHART_ACTUAL    = [52, 55, 58, 61, 63, 67, 71, null, null, null, null];
+const CHART_ACTUAL = [52, 55, 58, 61, 63, 67, 71, null, null, null, null];
 const CHART_PREDICTED = [null, null, null, null, null, null, 71, 74, 78, 82, 86];
 
 const NAV_ITEMS = [
-  { label: 'Dashboard',      active: true,  badge: null },
-  { label: 'Hospitals',      active: false, badge: null },
-  { label: 'Analytics',      active: false, badge: null },
-  { label: 'Emergency Feed', active: false, badge: '3'  },
+  { label: 'Dashboard', active: true, badge: null },
+  { label: 'Hospitals', active: false, badge: null },
+  { label: 'Analytics', active: false, badge: null },
+  { label: 'Emergency Feed', active: false, badge: '3' },
   { label: 'Network Status', active: false, badge: null },
-  { label: 'Security',       active: false, badge: null },
+  { label: 'Security', active: false, badge: null },
 ];
 
 // ─── HOOKS ───────────────────────────────────────────────────────────────────
@@ -97,19 +97,19 @@ const NAV_ITEMS = [
 function useCountUp(target, duration = 900, delay = 0) {
   const [value, setValue] = useState(0);
   const fromRef = useRef(0);
-  const rafRef  = useRef(null);
+  const rafRef = useRef(null);
 
   useEffect(() => {
     const run = () => {
-      const from  = fromRef.current;
+      const from = fromRef.current;
       const start = performance.now();
-      const tick  = (now) => {
+      const tick = (now) => {
         const prog = Math.min((now - start) / duration, 1);
         const ease = 1 - Math.pow(1 - prog, 3);
-        const cur  = Math.round(from + (target - from) * ease);
+        const cur = Math.round(from + (target - from) * ease);
         setValue(cur);
         if (prog < 1) { rafRef.current = requestAnimationFrame(tick); }
-        else          { fromRef.current = target; }
+        else { fromRef.current = target; }
       };
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(tick);
@@ -173,9 +173,9 @@ function StatCard({ label, value, suffix, color, icon, sub, subColor, delay }) {
   }, [value]);
 
   const colors = {
-    blue:   { val: '#00a8ff', glow: 'rgba(0,168,255,0.25)',  bg: 'rgba(0,168,255,0.08)',  bar: 'rgba(0,168,255,0.18)'  },
-    green:  { val: '#00ff9d', glow: 'rgba(0,255,157,0.2)',   bg: 'rgba(0,255,157,0.07)',  bar: 'rgba(0,255,157,0.18)'  },
-    amber:  { val: '#ffaa00', glow: 'rgba(255,170,0,0.2)',   bg: 'rgba(255,170,0,0.07)',  bar: 'rgba(255,170,0,0.18)'  },
+    blue: { val: '#00a8ff', glow: 'rgba(0,168,255,0.25)', bg: 'rgba(0,168,255,0.08)', bar: 'rgba(0,168,255,0.18)' },
+    green: { val: '#00ff9d', glow: 'rgba(0,255,157,0.2)', bg: 'rgba(0,255,157,0.07)', bar: 'rgba(0,255,157,0.18)' },
+    amber: { val: '#ffaa00', glow: 'rgba(255,170,0,0.2)', bg: 'rgba(255,170,0,0.07)', bar: 'rgba(255,170,0,0.18)' },
     purple: { val: '#9b6dff', glow: 'rgba(123,47,255,0.25)', bg: 'rgba(123,47,255,0.08)', bar: 'rgba(123,47,255,0.18)' },
   };
   const c = colors[color];
@@ -272,7 +272,7 @@ function FeedItem({ p }) {
 
 function MiniChart({ actualData, predictedData }) {
   const canvasRef = useRef(null);
-  const chartRef  = useRef(null);
+  const chartRef = useRef(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -331,7 +331,7 @@ function MiniChart({ actualData, predictedData }) {
       });
     });
     return () => { if (chartRef.current) chartRef.current.destroy(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Live-update datasets without remounting
@@ -352,49 +352,49 @@ function MiniChart({ actualData, predictedData }) {
 // ─── ICONS ───────────────────────────────────────────────────────────────────
 
 const Icons = {
-  grid:    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
-  home:    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
-  bar:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
-  phone:   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.22 2.18 2 2 0 012.2 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>,
-  wifi:    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 19.07a10 10 0 010-14.14"/></svg>,
-  shield:  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-  bolt:    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-  refresh: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>,
-  layers:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00a8ff" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>,
-  pulse:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00a8ff" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
-  warn:    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff3366" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
-  feed:    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8ab4d4" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07"/></svg>,
+  grid: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>,
+  home: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
+  bar: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>,
+  phone: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.22 2.18 2 2 0 012.2 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" /></svg>,
+  wifi: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 010 14.14M4.93 19.07a10 10 0 010-14.14" /></svg>,
+  shield: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
+  bolt: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
+  refresh: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" /></svg>,
+  layers: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00a8ff" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg>,
+  pulse: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00a8ff" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>,
+  warn: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff3366" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
+  feed: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8ab4d4" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07" /></svg>,
 };
 
 // ─── PAGE COMPONENT ───────────────────────────────────────────────────────────
 
 export default function AdminPage() {
-  const [hospitals,      setHospitals]      = useState(INITIAL_HOSPITALS);
-  const [feed,           setFeed]           = useState(ALL_PATIENTS.slice(0, 6));
-  const [alerts,         setAlerts]         = useState(() =>
+  const [hospitals, setHospitals] = useState(INITIAL_HOSPITALS);
+  const [feed, setFeed] = useState(ALL_PATIENTS.slice(0, 6));
+  const [alerts, setAlerts] = useState(() =>
     ALERT_POOL.slice(0, 3).map((a, i) => ({ ...a, id: i + 1, time: `${(i + 1) * 3} min ago` }))
   );
-  const [toast,          setToast]          = useState({ visible: false, title: '', msg: '' });
-  const [emergencyMode,  setEmergencyMode]  = useState(false);
-  const [activeNav,      setActiveNav]      = useState('Dashboard');
+  const [toast, setToast] = useState({ visible: false, title: '', msg: '' });
+  const [emergencyMode, setEmergencyMode] = useState(false);
+  const [activeNav, setActiveNav] = useState('Dashboard');
 
   // ── Live global stats (derived + independent)
-  const [availBeds,      setAvailBeds]      = useState(284719);
-  const [icuPct,         setIcuPct]         = useState(71);
-  const [readinessPct,   setReadinessPct]   = useState(88);
-  const [patientsToday,  setPatientsToday]  = useState(18402);
-  const [bedsDelta,      setBedsDelta]      = useState(-2847);
-  const [icuDelta,       setIcuDelta]       = useState('+8%');
+  const [availBeds, setAvailBeds] = useState(284719);
+  const [icuPct, setIcuPct] = useState(71);
+  const [readinessPct, setReadinessPct] = useState(88);
+  const [patientsToday, setPatientsToday] = useState(18402);
+  const [bedsDelta, setBedsDelta] = useState(-2847);
+  const [icuDelta, setIcuDelta] = useState('+8%');
   const [readinessDelta, setReadinessDelta] = useState('+3%');
 
   // ── Live chart data
-  const [chartActual,    setChartActual]    = useState(CHART_ACTUAL);
+  const [chartActual, setChartActual] = useState(CHART_ACTUAL);
   const [chartPredicted, setChartPredicted] = useState(CHART_PREDICTED);
 
   // ── Alert age ticker
-  const [alertTick,      setAlertTick]      = useState(0);
+  const [alertTick, setAlertTick] = useState(0);
 
-  const clock      = useLiveClock();
+  const clock = useLiveClock();
   const toastTimer = useRef(null);
   const feedTimerRef = useRef(null);
 
@@ -413,13 +413,13 @@ export default function AdminPage() {
           const bedDelta = Math.floor(Math.random() * 8) - 3;
           const icuDelta = Math.random() > 0.6 ? (Math.random() > 0.5 ? 1 : -1) : 0;
           const beds = Math.max(0, Math.min(h.maxBeds, h.beds + bedDelta));
-          const icu  = Math.max(0, Math.min(h.maxIcu,  h.icu  + icuDelta));
+          const icu = Math.max(0, Math.min(h.maxIcu, h.icu + icuDelta));
           const status = beds < 15 ? 'critical' : beds < 80 ? 'limited' : 'open';
           return { ...h, beds, icu, status };
         });
         // Derive global available beds from table
         const totalFree = next.reduce((s, h) => s + h.beds, 0);
-        const ratio     = totalFree / next.reduce((s, h) => s + h.maxBeds, 0);
+        const ratio = totalFree / next.reduce((s, h) => s + h.maxBeds, 0);
         setAvailBeds((prev) => {
           const target = Math.round(284000 + (ratio - 0.45) * 8000 + (Math.random() - 0.5) * 300);
           const d = target - prev;
@@ -427,9 +427,9 @@ export default function AdminPage() {
           return target;
         });
         // ICU pct
-        const icuUsed  = next.reduce((s, h) => s + (h.maxIcu - h.icu), 0);
+        const icuUsed = next.reduce((s, h) => s + (h.maxIcu - h.icu), 0);
         const icuTotal = next.reduce((s, h) => s + h.maxIcu, 0);
-        const newIcu   = Math.round((icuUsed / icuTotal) * 100);
+        const newIcu = Math.round((icuUsed / icuTotal) * 100);
         setIcuPct((prev) => { setIcuDelta(`${newIcu >= prev ? '+' : ''}${newIcu - prev}%`); return newIcu; });
         return next;
       });
@@ -480,7 +480,7 @@ export default function AdminPage() {
   useEffect(() => {
     const rotateId = setInterval(() => {
       setAlerts((prev) => {
-        const pool    = ALERT_POOL.filter((a) => !prev.find((p) => p.hospital === a.hospital && p.msg === a.msg));
+        const pool = ALERT_POOL.filter((a) => !prev.find((p) => p.hospital === a.hospital && p.msg === a.msg));
         if (!pool.length) return prev;
         const newAlert = { ...pool[Math.floor(Math.random() * pool.length)], id: Date.now(), time: 'just now' };
         return [newAlert, ...prev.slice(0, 2)];
@@ -504,9 +504,9 @@ export default function AdminPage() {
     const id = setInterval(() => {
       setChartActual((prev) => {
         const existing = prev.filter((v) => v !== null);
-        const last     = existing[existing.length - 1] ?? 70;
-        const next     = Math.max(45, Math.min(97, last + Math.round((Math.random() - 0.4) * 5)));
-        const shifted  = [...prev.slice(1), null];
+        const last = existing[existing.length - 1] ?? 70;
+        const next = Math.max(45, Math.min(97, last + Math.round((Math.random() - 0.4) * 5)));
+        const shifted = [...prev.slice(1), null];
         // replace the current 'Now' slot (index 6)
         shifted[6] = next;
         return shifted;
@@ -522,7 +522,7 @@ export default function AdminPage() {
       });
     }, 20000);
     return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleEmergency = () => {
@@ -861,7 +861,7 @@ export default function AdminPage() {
         <aside className="sidebar">
           <div className="logo">
             <div className="logo-icon">{Icons.layers}</div>
-            <div className="logo-name">HOSPITAL<br/>INTELLIGENCE</div>
+            <div className="logo-name">HOSPITAL<br />INTELLIGENCE</div>
             <div className="logo-sub"><div className="live-dot" />SYSTEM ONLINE</div>
             <div style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--c-text3)', letterSpacing: 1, marginTop: 5 }}>9,251 HOSPITALS LINKED</div>
           </div>
@@ -869,10 +869,10 @@ export default function AdminPage() {
           <nav className="nav">
             <div className="nav-section">Navigation</div>
             {[
-              { label: 'Dashboard',      icon: Icons.grid,   badge: null },
-              { label: 'Hospitals',      icon: Icons.home,   badge: null },
-              { label: 'Analytics',      icon: Icons.bar,    badge: null },
-              { label: 'Emergency Feed', icon: Icons.phone,  badge: String(criticalCount) },
+              { label: 'Dashboard', icon: Icons.grid, badge: null },
+              { label: 'Hospitals', icon: Icons.home, badge: null },
+              { label: 'Analytics', icon: Icons.bar, badge: null },
+              { label: 'Emergency Feed', icon: Icons.phone, badge: String(criticalCount) },
             ].map(({ label, icon, badge }) => (
               <div key={label} className={`nav-item ${activeNav === label ? 'active' : ''}`} onClick={() => setActiveNav(label)}>
                 {icon}<span>{label}</span>
@@ -881,8 +881,8 @@ export default function AdminPage() {
             ))}
             <div className="nav-section" style={{ marginTop: 8 }}>System</div>
             {[
-              { label: 'Network Status', icon: Icons.wifi   },
-              { label: 'Security',       icon: Icons.shield },
+              { label: 'Network Status', icon: Icons.wifi },
+              { label: 'Security', icon: Icons.shield },
             ].map(({ label, icon }) => (
               <div key={label} className={`nav-item ${activeNav === label ? 'active' : ''}`} onClick={() => setActiveNav(label)}>
                 {icon}<span>{label}</span>
@@ -933,18 +933,18 @@ export default function AdminPage() {
             <div>
               <div className="sec-label">System Overview — India Network · Live</div>
               <div className="stats-grid">
-                <StatCard label="Total Hospitals"    value={9251}      suffix={null} color="blue"   delay={100}
-                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00a8ff" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>}
+                <StatCard label="Total Hospitals" value={9251} suffix={null} color="blue" delay={100}
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00a8ff" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>}
                   sub={{ arrow: '+38', text: 'new this month' }} subColor="up" />
-                <StatCard label="Available Beds"     value={availBeds} suffix={null} color="green"  delay={250}
-                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff9d" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>}
+                <StatCard label="Available Beds" value={availBeds} suffix={null} color="green" delay={250}
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff9d" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /></svg>}
                   sub={{ arrow: bedsDelta > 0 ? `+${bedsDelta.toLocaleString()}` : bedsDelta.toLocaleString(), text: 'vs last update' }}
                   subColor={bedsDelta >= 0 ? 'up' : 'down'} />
-                <StatCard label="ICU Capacity"       value={icuPct}    suffix="%"    color="amber"  delay={400}
-                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>}
+                <StatCard label="ICU Capacity" value={icuPct} suffix="%" color="amber" delay={400}
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>}
                   sub={{ arrow: icuDelta, text: 'utilization change' }} subColor={icuDelta.startsWith('+') ? 'down' : 'up'} />
                 <StatCard label="Emergency Readiness" value={readinessPct} suffix="%" color="purple" delay={550}
-                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9b6dff" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>}
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9b6dff" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>}
                   sub={{ arrow: readinessDelta, text: 'network readiness' }} subColor={readinessDelta.startsWith('+') ? 'up' : 'down'} />
               </div>
             </div>
@@ -954,7 +954,7 @@ export default function AdminPage() {
               {/* Hospital table */}
               <div className="panel">
                 <div className="panel-head">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8ab4d4" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8ab4d4" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><line x1="9" y1="22" x2="9" y2="12" /><line x1="15" y1="22" x2="15" y2="12" /></svg>
                   <span className="panel-title">Hospital Status Matrix</span>
                   <div className="panel-live green"><div className="live-dot-sm" />LIVE</div>
                 </div>
@@ -1010,7 +1010,7 @@ export default function AdminPage() {
               {/* Emergency Feed */}
               <div className="panel">
                 <div className="panel-head">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8ab4d4" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8"/><path d="M.22 2.18A2 2 0 002.2 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8ab4d4" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8" /><path d="M.22 2.18A2 2 0 002.2 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91" /></svg>
                   <span className="panel-title">Incoming Emergency Feed</span>
                   <div className="panel-live green"><div className="live-dot-sm" />LIVE</div>
                 </div>
@@ -1024,15 +1024,15 @@ export default function AdminPage() {
               {/* Quick Actions */}
               <div className="panel">
                 <div className="panel-head">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8ab4d4" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 19.07a10 10 0 010-14.14"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8ab4d4" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 010 14.14M4.93 19.07a10 10 0 010-14.14" /></svg>
                   <span className="panel-title">Quick Actions</span>
                 </div>
                 <div style={{ padding: '12px' }}>
                   {[
-                    { cls: 'blue',   emoji: '🏥', title: 'Mark as Full',      sub: 'Lock bed intake',     fn: () => showToast('Hospital marked full', 'Updating bed availability across network...') },
-                    { cls: 'red',    emoji: '🚨', title: 'Emergency Mode',    sub: 'Activate protocol',   fn: handleEmergency },
-                    { cls: 'amber',  emoji: '🔀', title: 'Redirect Patients', sub: 'Auto-route active',   fn: () => showToast('Redirect initiated', 'Routing patients to nearest available hospitals...') },
-                    { cls: 'purple', emoji: '🤖', title: 'Run AI Analysis',   sub: 'Predict next 4 hrs',  fn: () => showToast('AI Analysis running', 'Generating predictive capacity report...') },
+                    { cls: 'blue', emoji: '🏥', title: 'Mark as Full', sub: 'Lock bed intake', fn: () => showToast('Hospital marked full', 'Updating bed availability across network...') },
+                    { cls: 'red', emoji: '🚨', title: 'Emergency Mode', sub: 'Activate protocol', fn: handleEmergency },
+                    { cls: 'amber', emoji: '🔀', title: 'Redirect Patients', sub: 'Auto-route active', fn: () => showToast('Redirect initiated', 'Routing patients to nearest available hospitals...') },
+                    { cls: 'purple', emoji: '🤖', title: 'Run AI Analysis', sub: 'Predict next 4 hrs', fn: () => showToast('AI Analysis running', 'Generating predictive capacity report...') },
                   ].map(({ cls, emoji, title, sub, fn }) => (
                     <div key={title} className={`action-btn ${cls}`} onClick={fn}>
                       <div className="action-btn-icon">{emoji}</div>

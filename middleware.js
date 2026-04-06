@@ -6,17 +6,21 @@ export function middleware(request) {
   // Better Auth sets a cookie named "better-auth.session_token"
   const session = request.cookies.get("better-auth.session_token");
 
-  if (!session && pathname.startsWith("/dashboard")) {
+  // Protected routes — require login
+  const protectedPaths = ["/admin", "/appointments", "/my-bookings", "/profile"];
+  const isProtected = protectedPaths.some(p => pathname.startsWith(p));
+
+  if (!session && isProtected) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
   if (session && (pathname === "/sign-in" || pathname === "/sign-up")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/sign-in", "/sign-up"],
+  matcher: ["/admin/:path*", "/sign-in", "/sign-up", "/appointments/:path*", "/my-bookings/:path*", "/profile/:path*"],
 };

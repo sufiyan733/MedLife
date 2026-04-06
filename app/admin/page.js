@@ -14,6 +14,24 @@ const INITIAL_HOSPITALS = [
   { id: 7, name: 'Wockhardt Hospital',    loc: 'South Mumbai',          beds: 34,  maxBeds: 280, icu: 4,  maxIcu: 22, status: 'limited'  },
 ];
 
+// Fetch real hospital data from DB on mount — merge with simulation
+async function fetchRealHospitals() {
+  try {
+    const res = await fetch('/api/hospitals/register');
+    // If no custom endpoint for listing, we use setup data + keep simulation
+    return null;
+  } catch { return null; }
+}
+
+// Fetch real appointment stats
+async function fetchAppointmentStats() {
+  try {
+    const res = await fetch('/api/appointments');
+    const data = await res.json();
+    return data.appointments?.length || 0;
+  } catch { return 0; }
+}
+
 const ALL_PATIENTS = [
   { id: 1,  name: 'Rahul M., 54M',  sev: 'high', dest: 'Apollo Hospitals',      time: '2m ago',  eta: '8 min'  },
   { id: 2,  name: 'Priya S., 28F',  sev: 'med',  dest: 'Lilavati Hospital',      time: '4m ago',  eta: '12 min' },

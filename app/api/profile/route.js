@@ -29,7 +29,12 @@ export async function GET() {
         pp.address,
         pp.blood_group,
         pp.allergies,
-        pp.existing_conditions
+        pp.existing_conditions,
+        pp.emergency_contact_name,
+        pp.emergency_contact_phone,
+        pp.insurance_provider,
+        pp.insurance_id,
+        pp.medications
       FROM "user" u
       LEFT JOIN patient_profiles pp ON pp.user_id = u.id
       WHERE u.id = ${userId}
@@ -56,7 +61,7 @@ export async function PUT(req) {
     }
 
     const userId = session.user.id;
-    const { name, age, gender, phone, address, blood_group, allergies, existing_conditions } = await req.json();
+    const { name, age, gender, phone, address, blood_group, allergies, existing_conditions, emergency_contact_name, emergency_contact_phone, insurance_provider, insurance_id, medications } = await req.json();
 
     // Validation
     const validGenders = ["male", "female", "other", "", null, undefined];
@@ -85,6 +90,8 @@ export async function PUT(req) {
       INSERT INTO patient_profiles (
         id, user_id, age, gender, phone, address,
         blood_group, allergies, existing_conditions,
+        emergency_contact_name, emergency_contact_phone,
+        insurance_provider, insurance_id, medications,
         created_at, updated_at
       )
       VALUES (
@@ -97,18 +104,28 @@ export async function PUT(req) {
         ${blood_group || null},
         ${allergies || null},
         ${existing_conditions || null},
+        ${emergency_contact_name || null},
+        ${emergency_contact_phone || null},
+        ${insurance_provider || null},
+        ${insurance_id || null},
+        ${medications || null},
         now(),
         now()
       )
       ON CONFLICT (user_id) DO UPDATE SET
-        age                 = EXCLUDED.age,
-        gender              = EXCLUDED.gender,
-        phone               = EXCLUDED.phone,
-        address             = EXCLUDED.address,
-        blood_group         = EXCLUDED.blood_group,
-        allergies           = EXCLUDED.allergies,
-        existing_conditions = EXCLUDED.existing_conditions,
-        updated_at          = now()
+        age                     = EXCLUDED.age,
+        gender                  = EXCLUDED.gender,
+        phone                   = EXCLUDED.phone,
+        address                 = EXCLUDED.address,
+        blood_group             = EXCLUDED.blood_group,
+        allergies               = EXCLUDED.allergies,
+        existing_conditions     = EXCLUDED.existing_conditions,
+        emergency_contact_name  = EXCLUDED.emergency_contact_name,
+        emergency_contact_phone = EXCLUDED.emergency_contact_phone,
+        insurance_provider      = EXCLUDED.insurance_provider,
+        insurance_id            = EXCLUDED.insurance_id,
+        medications             = EXCLUDED.medications,
+        updated_at              = now()
     `);
 
     return NextResponse.json({ success: true, message: "Profile updated successfully." });

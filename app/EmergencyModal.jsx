@@ -1,6 +1,6 @@
 "use client";
 
-import { parseElement, haversine } from "./useHospitals";
+import { parseElement, haversine, fetchHospitals } from "./useHospitals";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MapLocationPicker } from "./MapLocationPicker";
 
@@ -19,6 +19,7 @@ const STYLES = `
   @keyframes em-shimmer     { 0% { background-position:-200% center } 100% { background-position:200% center } }
   @keyframes em-greenPulse  { 0%,100% { opacity:1 } 50% { opacity:.4 } }
   @keyframes em-rowSlide    { from { opacity:0; transform:translateX(-10px) } to { opacity:1; transform:translateX(0) } }
+  @keyframes em-urgentRing  { 0%{box-shadow:0 0 0 0 rgba(220,38,38,.6)} 50%{box-shadow:0 0 0 16px rgba(220,38,38,0)} 100%{box-shadow:0 0 0 0 rgba(220,38,38,0)} }
 
   .em-backdrop  { animation: em-backdropIn .22s ease both }
   .em-card      { animation: em-cardIn .34s cubic-bezier(.16,1,.3,1) both; font-family:'DM Sans',sans-serif }
@@ -29,6 +30,7 @@ const STYLES = `
   .em-ambulance { animation: em-ambulance 1.1s ease-in-out infinite }
   .em-beat      { animation: em-countBeat 1s ease-in-out infinite }
   .em-greendot  { animation: em-greenPulse 1.4s ease-in-out infinite }
+  .em-urgentring { animation: em-urgentRing 1.3s ease-in-out infinite }
 
   .em-row { animation: em-rowSlide .28s cubic-bezier(.16,1,.3,1) both }
   .em-row:nth-child(1) { animation-delay:.04s }
@@ -202,7 +204,7 @@ const PhaseCountdown = ({ count, nearest, onCancel, onSendNow }) => (
     )}
 
     <div style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
-      <button onClick={onSendNow} className="em-btn-primary" style={{
+      <button onClick={onSendNow} className="em-btn-primary em-urgentring" style={{
         width:"100%", padding:"clamp(12px,3vw,15px)",
         borderRadius:"14px", border:"none",
         color:"#fff", fontWeight:800, fontSize:T.fs.md, cursor:"pointer",
@@ -210,6 +212,16 @@ const PhaseCountdown = ({ count, nearest, onCancel, onSendNow }) => (
       }}>
         <span>🚨</span> Send SOS Now
       </button>
+      <a href="tel:112" style={{
+        width:"100%", padding:"clamp(11px,2.5vw,13px)",
+        borderRadius:"14px", background:"#fef2f2",
+        border:"1.5px solid #fecaca", color:"#dc2626",
+        fontWeight:700, fontSize:T.fs.sm, cursor:"pointer",
+        textDecoration:"none", textAlign:"center",
+        display:"flex", alignItems:"center", justifyContent:"center", gap:"6px",
+      }}>
+        📞 Call 112 Now
+      </a>
       <button onClick={onCancel} className="em-btn-secondary" style={{
         width:"100%", padding:"clamp(11px,2.5vw,13px)",
         borderRadius:"14px", background:"#f8fafc",
@@ -364,6 +376,11 @@ export function EmergencyModal({ open, onClose, hospitals = [] }) {
   const [showMapPicker, setShowMapPicker] = useState(false);
   const timerRef = useRef(null);
 
+  /* Haptic feedback helper */
+  const vibrate = useCallback((pattern) => {
+    try { navigator?.vibrate?.(pattern); } catch {}
+  }, []);
+
   const findNearest = useCallback((lat, lng, hospList) => {
     const candidates = hospList.map((h) => ({
       ...h,
@@ -393,6 +410,9 @@ export function EmergencyModal({ open, onClose, hospitals = [] }) {
     setShowMapPicker(false);
     clearInterval(timerRef.current);
 
+    // Haptic on open
+    vibrate([100, 50, 100, 50, 200]);
+
     if (!navigator.geolocation) { setPhase("denied"); return; }
 
     navigator.geolocation.getCurrentPosition(
@@ -400,8 +420,9 @@ export function EmergencyModal({ open, onClose, hospitals = [] }) {
         const { latitude: lat, longitude: lng } = pos.coords;
         setUserCoords({ lat, lng });
         try {
-          const elements = await fetchFromOverpass(lat, lng, 15000);
-          const parsed   = elements.map((el, i) => parseElement(el, i, lat, lng)).filter(Boolean);
+          // Use Geoapify instead of broken Overpass reference
+          const features = await fetchHospitals(lat, lng, 15000);
+          const parsed = features.map((f, i) => parseElement(f, i, lat, lng)).filter(Boolean);
           const list     = parsed.length > 0 ? parsed : hospitals;
           const n        = findNearest(lat, lng, list);
           setNearest(n);
@@ -416,20 +437,22 @@ export function EmergencyModal({ open, onClose, hospitals = [] }) {
       { timeout: 8000 }
     );
     return () => clearInterval(timerRef.current);
-  }, [open, hospitals, findNearest]);
+  }, [open, hospitals, findNearest, vibrate]);
 
   /* Countdown tick */
   useEffect(() => {
     if (phase !== "sos_countdown") return;
     setSosCount(3);
+    vibrate(200); // haptic on countdown start
     timerRef.current = setInterval(() => {
       setSosCount((c) => {
         if (c <= 1) { clearInterval(timerRef.current); setPhase("confirm"); return 0; }
+        vibrate(100); // tick vibration
         return c - 1;
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [phase]);
+  }, [phase, vibrate]);
 
   const cancelSOS = useCallback(() => {
     clearInterval(timerRef.current);
@@ -441,8 +464,8 @@ export function EmergencyModal({ open, onClose, hospitals = [] }) {
     setUserCoords({ lat, lng });
     setPhase("locating");
     try {
-      const elements = await fetchFromOverpass(lat, lng, 15000);
-      const parsed   = elements.map((el, i) => parseElement(el, i, lat, lng)).filter(Boolean);
+      const features = await fetchHospitals(lat, lng, 15000);
+      const parsed = features.map((f, i) => parseElement(f, i, lat, lng)).filter(Boolean);
       const list     = parsed.length > 0 ? parsed : hospitals;
       const n        = findNearest(lat, lng, list);
       setNearest(n);
@@ -557,8 +580,8 @@ export function EmergencyModal({ open, onClose, hospitals = [] }) {
             scrollbarColor:"#fee2e2 transparent",
           }}>
             {phase === "locating"      && <PhaseLocating  onPickMap={() => setShowMapPicker(true)} />}
-            {phase === "sos_countdown" && <PhaseCountdown count={sosCount} nearest={nearest} onCancel={cancelSOS} onSendNow={() => { clearInterval(timerRef.current); setPhase("confirm"); }} />}
-            {phase === "confirm"       && <PhaseConfirm   nearest={nearest} etaMin={etaMin} onConfirm={() => setPhase("dispatched")} onCancel={cancelSOS} />}
+            {phase === "sos_countdown" && <PhaseCountdown count={sosCount} nearest={nearest} onCancel={cancelSOS} onSendNow={() => { clearInterval(timerRef.current); vibrate([200,100,200]); setPhase("confirm"); }} />}
+            {phase === "confirm"       && <PhaseConfirm   nearest={nearest} etaMin={etaMin} onConfirm={() => { vibrate([300,100,300,100,500]); setPhase("dispatched"); }} onCancel={cancelSOS} />}
             {phase === "dispatched"    && <PhaseDispatched nearest={nearest} etaMin={etaMin} userCoords={userCoords} googleMapsUrl={googleMapsUrl} onClose={onClose} />}
             {phase === "denied"        && <PhaseDenied    onPickMap={() => setShowMapPicker(true)} onClose={onClose} />}
           </div>

@@ -5,6 +5,7 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { useHospitals, haversine } from "./useHospitals";
 import { MapLocationPicker } from "./MapLocationPicker";
 import { EmergencyModal } from "./EmergencyModal";
+import { ChatWidget } from "@/components/Chatwidget";
 
 const FILTERS = ["All", "Cardiac", "Neuro", "Ortho", "Oncology", "Pediatrics"];
 
@@ -659,268 +660,8 @@ function MapPanel({ hospital, onClose, userLat, userLng, isMobileSheet }) {
 }
 
 /* ═══════════════════════════════════════════════
-   ChatWidget  (unchanged logic, kept in full)
+   ChatWidget is now imported from @/components/Chatwidget
 ═══════════════════════════════════════════════ */
-export function ChatWidget({
-  onHospitalSelect, userAddress, userLat, userLng,
-  hospitals, activeFilter, selectedHospital, locationStatus,
-}) {
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: "assistant", content: "Namaste! Main Medi hoon 👋\nAapko kaunsi takleef hai?", model: null },
-  ]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [focused, setFocused] = useState(false);
-  const [chips, setChips] = useState(["SYMPTOMS"]);
-  const [showEmergency, setShowEmergency] = useState(false);
-  const bottomRef = useRef(null);
-  const inputRef = useRef(null);
-
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 640);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, open]);
-
-  const send = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg = { role: "user", content: input.trim() };
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
-    setInput("");
-    setLoading(true);
-    setChips([]);
-
-    const emergencyWords = ["chest pain","breathe","unconscious","stroke","heart attack","bleeding","accident"];
-    if (emergencyWords.some((w) => input.toLowerCase().includes(w))) {
-      setShowEmergency(true);
-      setTimeout(() => setShowEmergency(false), 8000);
-    }
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: newMessages.slice(-6),
-          userContext: { address: userAddress || null, lat: userLat || null, lng: userLng || null, locationGranted: locationStatus === "granted" },
-          pageContext: {
-            visibleHospitals: (hospitals || []).slice(0, 5).map((h, idx) => ({
-              id: idx, name: h.name, type: h.type, distanceKm: h.distanceKm ?? null,
-              rating: h.rating, waitTime: h.waitTime, bedsAvailable: h.beds.available,
-              bedsTotal: h.beds.total, icuAvailable: h.icu.available, icuTotal: h.icu.total,
-              emergency: h.emergency, specialties: h.specialties.slice(0, 2), address: h.address,
-              phone: h.phone, badge: h.badge,
-            })),
-            activeFilter,
-            selectedHospital: selectedHospital
-              ? { id: (hospitals || []).slice(0, 5).findIndex((h) => h.name === selectedHospital.name), name: selectedHospital.name }
-              : null,
-            totalHospitalsShown: (hospitals || []).length,
-          },
-        }),
-      });
-
-      const data = await res.json();
-      let reply = data.reply || "Sorry, something went wrong.";
-      const mapMatch = reply.match(/\[OPEN_MAP:([^\]]+)\]/);
-
-      if (mapMatch) {
-        const raw = mapMatch[1];
-        const hospIdx = raw.startsWith("H") ? parseInt(raw.slice(1)) - 1 : parseInt(raw);
-        reply = reply.replace(/\[OPEN_MAP:\d+\]/g, "").trim();
-        setMessages((p) => [...p, { role: "assistant", content: reply, model: data.model }]);
-        setTimeout(() => {
-          onHospitalSelect(hospIdx);
-          document.getElementById("hospitals")?.scrollIntoView({ behavior: "smooth" });
-        }, 800);
-      } else {
-        setMessages((p) => [...p, { role: "assistant", content: reply, model: data.model }]);
-      }
-    } catch {
-      setMessages((p) => [...p, { role: "assistant", content: "Connection error. Please try again.", model: null }]);
-    } finally {
-      setLoading(false);
-      setTimeout(() => inputRef.current?.focus(), 150);
-    }
-  };
-
-  const panelStyle = isMobile
-    ? { position:"fixed", bottom:"84px", left:"12px", right:"12px", zIndex:50, borderRadius:"20px", height:"min(520px, calc(100vh - 120px))", display:"flex", flexDirection:"column", boxShadow:"0 32px 80px rgba(0,0,0,0.28),0 8px 24px rgba(0,0,0,0.12)", overflow:"hidden" }
-    : { position:"fixed", bottom:"104px", right:"28px", zIndex:50, width:"min(420px, calc(100vw - 56px))", height:"min(580px, calc(100vh - 140px))", borderRadius:"24px", display:"flex", flexDirection:"column", boxShadow:"0 40px 100px rgba(0,0,0,0.22),0 8px 32px rgba(0,0,0,0.12),inset 0 0 0 1px rgba(255,255,255,0.1)", overflow:"hidden" };
-
-  const fabStyle = isMobile
-    ? { position:"fixed", bottom:"20px", right:"20px", zIndex:51 }
-    : { position:"fixed", bottom:"28px", right:"28px", zIndex:50 };
-
-  return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&display=swap');
-        @keyframes floatUp { from{opacity:0;transform:translateY(18px) scale(0.96)} to{opacity:1;transform:translateY(0) scale(1)} }
-        @keyframes msgIn   { from{opacity:0;transform:translateY(8px)}            to{opacity:1;transform:translateY(0)} }
-        @keyframes dotDance{ 0%,80%,100%{transform:translateY(0);opacity:.35} 40%{transform:translateY(-5px);opacity:1} }
-        @keyframes orbPulse{ 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.15);opacity:1} }
-        @keyframes ringPop { 0%{transform:scale(0.85);opacity:0} 60%{transform:scale(1.05);opacity:1} 100%{transform:scale(1);opacity:1} }
-        @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
-        @keyframes gradShift{ 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-        .cw-wrap { animation:floatUp 0.32s cubic-bezier(.16,1,.3,1) both; font-family:'Cabinet Grotesk',sans-serif; }
-        .cw-msg  { animation:msgIn 0.24s cubic-bezier(.16,1,.3,1) both; }
-        .cw-dot  { animation:dotDance 1.2s ease-in-out infinite; }
-        .cw-orb  { animation:orbPulse 2.4s ease-in-out infinite; }
-        .cw-fab  { animation:ringPop 0.4s cubic-bezier(.16,1,.3,1) both; }
-        .cw-header-bg { background:linear-gradient(135deg,#052e16,#14532d,#166534,#052e16); background-size:300% 300%; animation:gradShift 6s ease infinite; }
-        .cw-shimmer-text { background:linear-gradient(90deg,#86efac,#fff,#4ade80,#fff,#86efac); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation:shimmer 3s linear infinite; }
-        .cw-user-bubble { background:linear-gradient(135deg,#166534,#15803d,#16a34a); box-shadow:0 4px 16px rgba(22,163,74,.3); }
-        .cw-ai-bubble   { background:#fff; box-shadow:0 2px 12px rgba(0,0,0,.06),inset 0 0 0 1px rgba(0,0,0,.06); }
-        .cw-input-wrap  { background:rgba(255,255,255,0.92); backdrop-filter:blur(16px); border-top:1px solid rgba(0,0,0,.06); }
-        .cw-input       { font-family:'Cabinet Grotesk',sans-serif; }
-        .cw-input:focus { outline:none; }
-        .cw-send { background:linear-gradient(135deg,#16a34a,#15803d); box-shadow:0 4px 14px rgba(22,163,74,.4); transition:all 0.18s cubic-bezier(.16,1,.3,1); }
-        .cw-send:hover:not(:disabled) { transform:scale(1.08); box-shadow:0 6px 20px rgba(22,163,74,.5); }
-        .cw-send:active:not(:disabled){ transform:scale(0.94); }
-        .cw-send:disabled { opacity:0.4; }
-        .cw-fab-btn { font-family:'Cabinet Grotesk',sans-serif; background:linear-gradient(135deg,#14532d,#166534,#16a34a); box-shadow:0 8px 32px rgba(22,163,74,.5),0 2px 8px rgba(0,0,0,.15); transition:all 0.22s cubic-bezier(.16,1,.3,1); border:none; cursor:pointer; }
-        .cw-fab-btn:hover  { transform:scale(1.1) rotate(-4deg); box-shadow:0 12px 40px rgba(22,163,74,.6); }
-        .cw-fab-btn:active { transform:scale(0.94); }
-        .cw-scroll::-webkit-scrollbar { width:3px; }
-        .cw-scroll::-webkit-scrollbar-track { background:transparent; }
-        .cw-scroll::-webkit-scrollbar-thumb { background:#d1fae5; border-radius:99px; }
-      `}</style>
-
-      <div className="cw-fab" style={fabStyle}>
-        <button
-          id="medi-chat-fab"
-          className="cw-fab-btn"
-          onClick={() => setOpen((o) => !o)}
-          style={{ width:"56px", height:"56px", borderRadius:"18px", display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}
-        >
-          <span style={{ fontSize:"24px", lineHeight:1, filter:"drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}>
-            {open ? "✕" : "🩺"}
-          </span>
-          {!open && (
-            <span style={{ position:"absolute", top:"-4px", right:"-4px", width:"13px", height:"13px", borderRadius:"50%", background:"#4ade80", border:"2.5px solid white", animation:"orbPulse 2s ease-in-out infinite" }} />
-          )}
-        </button>
-      </div>
-
-      {open && (
-        <div className="cw-wrap" style={panelStyle}>
-          <div className="cw-header-bg" style={{ padding:"14px 16px 12px", position:"relative", flexShrink:0 }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"10px" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
-                <div style={{ position:"relative" }}>
-                  <div style={{ width:"38px", height:"38px", borderRadius:"12px", background:"rgba(255,255,255,0.15)", border:"1.5px solid rgba(255,255,255,0.25)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"18px", backdropFilter:"blur(8px)" }}>🩺</div>
-                  <div className="cw-orb" style={{ position:"absolute", bottom:"-2px", right:"-2px", width:"10px", height:"10px", borderRadius:"50%", background:"#4ade80", border:"2px solid #052e16" }} />
-                </div>
-                <div>
-                  <p className="cw-shimmer-text" style={{ margin:0, fontWeight:900, fontSize:"14px", letterSpacing:"-0.3px" }}>Medi AI</p>
-                  <p style={{ margin:0, fontSize:"8px", color:"rgba(255,255,255,0.45)", fontWeight:600, letterSpacing:"0.08em" }}>HEALTH INTELLIGENCE ASSISTANT</p>
-                </div>
-              </div>
-              {userAddress && (
-                <div style={{ padding:"4px 9px", borderRadius:"9px", display:"flex", alignItems:"center", gap:"5px", background:"rgba(255,255,255,0.12)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.2)" }}>
-                  <span style={{ width:"5px", height:"5px", borderRadius:"50%", background:"#4ade80", display:"inline-block" }} />
-                  <span style={{ color:"rgba(255,255,255,0.8)", fontSize:"10px", fontWeight:700, maxWidth:"70px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                    {userAddress.split(",")[0]}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"6px" }}>
-              {[
-                { label:"Hospitals", value:(hospitals || []).length || "—" },
-                { label:"Avg Wait", value:hospitals?.length ? `${Math.round(hospitals.reduce((a,h)=>a+h.waitTime,0)/hospitals.length)}m` : "—" },
-                { label:"ERs Open", value:hospitals?.filter((h)=>h.emergency).length || "—" },
-              ].map((s) => (
-                <div key={s.label} style={{ background:"rgba(255,255,255,0.08)", borderRadius:"9px", padding:"6px 8px", border:"1px solid rgba(255,255,255,0.1)" }}>
-                  <p style={{ margin:0, fontWeight:800, fontSize:"13px", color:"#fff", letterSpacing:"-0.3px" }}>{s.value}</p>
-                  <p style={{ margin:0, fontSize:"8px", color:"rgba(255,255,255,0.4)", fontWeight:600, letterSpacing:"0.08em", textTransform:"uppercase", marginTop:"1px" }}>{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {showEmergency && (
-            <div style={{ background:"#fef2f2", borderBottom:"1px solid #fecaca", padding:"8px 14px", display:"flex", alignItems:"center", gap:"8px", flexShrink:0 }}>
-              <span style={{ fontSize:"14px" }}>🚨</span>
-              <p style={{ margin:0, fontSize:"11px", fontWeight:700, color:"#dc2626", flex:1 }}>Emergency? Call <strong>112</strong> immediately</p>
-              <button onClick={() => setShowEmergency(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"#dc2626", fontSize:"12px" }}>✕</button>
-            </div>
-          )}
-
-          {chips.length > 0 && messages.length <= 2 && (
-            <div style={{ padding:"8px 10px 4px", display:"flex", gap:"6px", flexWrap:"wrap", background:"#f0fdf4", borderBottom:"1px solid #dcfce7", flexShrink:0 }}>
-              {chips.map((chip) => (
-                <button key={chip} onClick={() => { setInput(chip.split(" ").slice(1).join(" ")); setChips([]); inputRef.current?.focus(); }}
-                  style={{ fontSize:"11px", fontWeight:600, padding:"5px 10px", borderRadius:"20px", border:"1px solid #bbf7d0", background:"#fff", color:"#16a34a", cursor:"pointer", fontFamily:"'Cabinet Grotesk', sans-serif" }}>
-                  {chip}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div style={{ flex:1, overflowY:"auto", padding:"12px 12px 8px", display:"flex", flexDirection:"column", gap:"10px", background:"#f0fdf4", scrollbarWidth:"thin", scrollbarColor:"#d1fae5 transparent" }}>
-            {messages.map((m, i) => (
-              <div key={i} className="cw-msg" style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start", alignItems:"flex-end", gap:"7px" }}>
-                {m.role === "assistant" && (
-                  <div style={{ width:"24px", height:"24px", borderRadius:"8px", background:"linear-gradient(135deg,#14532d,#16a34a)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"11px", flexShrink:0, marginBottom:"2px", boxShadow:"0 3px 8px rgba(22,163,74,.28)" }}>🩺</div>
-                )}
-                <div style={{ display:"flex", flexDirection:"column", maxWidth:"80%", gap:"2px" }}>
-                  <div className={m.role==="user"?"cw-user-bubble":"cw-ai-bubble"} style={{ padding:"10px 13px", borderRadius:m.role==="user"?"17px 17px 4px 17px":"17px 17px 17px 4px", fontSize:"13px", lineHeight:1.55, fontWeight:500, whiteSpace:"pre-wrap", color:m.role==="user"?"#fff":"#1a2e1a", fontFamily:"'Cabinet Grotesk',sans-serif" }}>
-                    {m.content}
-                  </div>
-                </div>
-              </div>
-            ))}
-            {loading && (
-              <div className="cw-msg" style={{ display:"flex", alignItems:"flex-end", gap:"7px" }}>
-                <div style={{ width:"24px", height:"24px", borderRadius:"8px", background:"linear-gradient(135deg,#14532d,#16a34a)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"11px", flexShrink:0, boxShadow:"0 3px 8px rgba(22,163,74,.28)" }}>🩺</div>
-                <div className="cw-ai-bubble" style={{ padding:"13px 15px", borderRadius:"17px 17px 17px 4px", display:"flex", gap:"5px", alignItems:"center" }}>
-                  {[0,160,320].map((d,i) => (
-                    <span key={i} className="cw-dot" style={{ width:"6px", height:"6px", borderRadius:"50%", background:"#16a34a", display:"inline-block", animationDelay:`${d}ms` }} />
-                  ))}
-                </div>
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
-
-          <div className="cw-input-wrap" style={{ padding:"8px 10px 10px", display:"flex", gap:"8px", alignItems:"center", flexShrink:0 }}>
-            <div style={{ flex:1, display:"flex", alignItems:"center", background:focused?"#fff":"#f8fffe", border:`1.5px solid ${focused?"#86efac":"#d1fae5"}`, borderRadius:"13px", padding:"9px 12px", transition:"all 0.2s", boxShadow:focused?"0 0 0 3px rgba(134,239,172,0.2)":"none" }}>
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key==="Enter" && !e.shiftKey && send()}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setTimeout(() => setFocused(false), 150)}
-                placeholder="Apne symptoms batayein…"
-                disabled={loading}
-                className="cw-input"
-                style={{ flex:1, background:"transparent", border:"none", fontSize:"13px", fontWeight:500, color:"#1a2e1a", opacity:loading?0.5:1 }}
-              />
-            </div>
-            <button onClick={send} disabled={loading || !input.trim()} className="cw-send" style={{ width:"40px", height:"40px", borderRadius:"13px", border:"none", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"#fff", fontSize:"15px", flexShrink:0 }}>➤</button>
-          </div>
-
-          <div style={{ padding:"0 10px 10px", background:"rgba(255,255,255,0.92)", backdropFilter:"blur(16px)", textAlign:"center" }}>
-            <p style={{ margin:0, fontSize:"9px", color:"#94a3b8", fontWeight:500 }}>
-              Not a substitute for medical advice · Call <strong style={{ color:"#ef4444" }}>112</strong> in emergencies
-            </p>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
 
 /* ═══════════════════════════════════════════════
    UserMenu
@@ -988,11 +729,8 @@ export default function LandingPage() {
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [autoScrollCountdown, setAutoScrollCountdown] = useState(4);
-  const [autoScrollDone, setAutoScrollDone] = useState(false);
-  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
-  const autoScrollTimerRef = useRef(null);
-  const countdownIntervalRef = useRef(null);
+  const [isOnline, setIsOnline] = useState(true);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   const [viewportWidth, setViewportWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
   useEffect(() => {
@@ -1003,42 +741,22 @@ export default function LandingPage() {
   const isMobile = viewportWidth < 640;
   const isTablet = viewportWidth < 1024;
 
+  /* Offline detection */
   useEffect(() => {
-    if (autoScrollDone) return;
-    countdownIntervalRef.current = setInterval(() => {
-      setAutoScrollCountdown((prev) => { if (prev <= 1) { clearInterval(countdownIntervalRef.current); return 0; } return prev - 1; });
-    }, 1000);
-    autoScrollTimerRef.current = setTimeout(() => {
-      setShowScrollIndicator(false);
-      setAutoScrollDone(true);
-      const target = document.getElementById("hospitals");
-      if (!target) return;
-      const targetY = target.getBoundingClientRect().top + window.scrollY - 64;
-      const startY = window.scrollY;
-      const distance = targetY - startY;
-      const duration = 3000;
-      let startTime = null;
-      function easeInOutCubic(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
-      function step(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        window.scrollTo(0, startY + distance * easeInOutCubic(progress));
-        if (progress < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
-    }, 1000);
-    return () => { clearTimeout(autoScrollTimerRef.current); clearInterval(countdownIntervalRef.current); };
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    setIsOnline(navigator.onLine);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => { window.removeEventListener("online", goOnline); window.removeEventListener("offline", goOffline); };
   }, []);
 
+  /* Back to top visibility */
   useEffect(() => {
-    if (autoScrollDone) return;
-    const handleScroll = () => {
-      if (window.scrollY > 60) { clearTimeout(autoScrollTimerRef.current); clearInterval(countdownIntervalRef.current); setShowScrollIndicator(false); setAutoScrollDone(true); }
-    };
-    window.addEventListener("scroll", handleScroll, { passive:true });
+    const handleScroll = () => setShowBackToTop(window.scrollY > 400);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [autoScrollDone]);
+  }, []);
 
   const { hospitals, loading: hospitalsLoading, error: hospitalsError } = useHospitals(userLocation?.lat, userLocation?.lng, radiusKm);
 
@@ -1073,8 +791,10 @@ export default function LandingPage() {
     else { setSelectedHospital(hospital); setMapOpen(true); }
   }, [selectedHospital, mapOpen]);
 
-  const handleHospitalSelectFromChat = useCallback((hospIdx) => {
-    const hosp = hospitals.slice(0,5)[hospIdx];
+  const handleHospitalSelectFromChat = useCallback((hospId) => {
+    // Support both ID-based and index-based lookups
+    let hosp = hospitals.find(h => String(h.id) === String(hospId));
+    if (!hosp && typeof hospId === 'number') hosp = hospitals[hospId];
     if (hosp) { setSelectedHospital(hosp); setMapOpen(true); setHighlightedIds([hosp.id]); setTimeout(() => setHighlightedIds([]),5000); setTimeout(() => document.getElementById("hospitals")?.scrollIntoView({behavior:"smooth"}),300); }
   }, [hospitals]);
 
@@ -1109,7 +829,21 @@ export default function LandingPage() {
         .filter-scroll{display:flex;overflow-x:auto;gap:8px;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
         .filter-scroll::-webkit-scrollbar{display:none}
         .filter-scroll button,.filter-scroll select,.filter-scroll a{flex-shrink:0}
+        html{scroll-behavior:smooth}
+        @keyframes skeletonShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        .skeleton{background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 37%,#f1f5f9 63%);background-size:200% 100%;animation:skeletonShimmer 1.5s ease-in-out infinite;border-radius:12px}
+        @keyframes offlinePulse{0%,100%{opacity:1}50%{opacity:.6}}
+        @keyframes fadeInDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+        .offline-bar{animation:offlinePulse 2s ease-in-out infinite}
+        .back-to-top{animation:fadeUp 0.3s ease both}
       `}</style>
+
+      {/* ── OFFLINE INDICATOR ── */}
+      {!isOnline && (
+        <div className="offline-bar fixed top-0 left-0 right-0 z-[60] flex items-center justify-center gap-2 py-2 px-4 text-white text-[12px] font-bold" style={{ background: "linear-gradient(135deg,#dc2626,#b91c1c)" }}>
+          <span>⚠️</span> You're offline — some features may not work
+        </div>
+      )}
 
       {/* ── HEADER ── */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md" style={{ borderBottom:"1px solid #edf0f2" }}>
@@ -1202,6 +936,32 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── HOW IT WORKS ── */}
+      <section className="py-10 sm:py-14 lg:py-16" style={{ background: "#f8faf9" }}>
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+          <div className="text-center mb-8 sm:mb-10">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-2 block">How It Works</span>
+            <h2 className="display text-xl sm:text-2xl lg:text-[30px] font-extrabold text-slate-900 leading-tight">3 steps to the right care</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+            {[
+              { step: "01", icon: "💬", title: "Tell Medi AI", desc: "Describe your symptoms in any language — Medi understands Hindi, Hinglish, and English.", color: "#16a34a" },
+              { step: "02", icon: "🏥", title: "Get matched", desc: "AI finds the best hospital by specialty, distance, bed availability, and wait time.", color: "#0369a1" },
+              { step: "03", icon: "🛏️", title: "Book & go", desc: "Reserve your bed in-chat, get directions, and arrive prepared — no calls needed.", color: "#7c3aed" },
+            ].map((s) => (
+              <div key={s.step} className="group relative bg-white rounded-2xl p-5 sm:p-6 lg:p-7 transition-all hover:-translate-y-1 hover:shadow-xl" style={{ border: "1.5px solid #edf0f2" }}>
+                <div className="flex items-start gap-4 mb-3">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-lg sm:text-xl flex-shrink-0" style={{ background: `${s.color}11`, border: `1.5px solid ${s.color}22` }}>{s.icon}</div>
+                  <div className="text-[11px] font-black text-slate-300 mt-1">{s.step}</div>
+                </div>
+                <h3 className="font-extrabold text-slate-900 text-[15px] sm:text-[16px] mb-1.5">{s.title}</h3>
+                <p className="text-slate-500 text-[12px] sm:text-[13px] leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── HOSPITALS ── */}
       <section id="hospitals" className="py-10 sm:py-14 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
@@ -1233,9 +993,23 @@ export default function LandingPage() {
           <div className="flex gap-4 lg:gap-5 items-start">
             <div className={`transition-all duration-300 ${mapAsSidePanel ? "w-1/2" : "w-full"}`}>
               {hospitalsLoading && (
-                <div className="text-center py-16">
-                  <div style={{ width:"40px", height:"40px", borderRadius:"50%", border:"3px solid #bbf7d0", borderTopColor:"#16a34a", margin:"0 auto 12px", animation:"spin 0.9s linear infinite" }} />
-                  <p className="text-slate-400 font-semibold text-[13px]">Loading hospitals near you…</p>
+                <div className={`grid gap-3 sm:gap-4 ${gridCols}`}>
+                  {[1,2,3,4,5,6].map(i => (
+                    <div key={i} className="rounded-2xl overflow-hidden" style={{ border:"1.5px solid #edf0f2", background:"#fff" }}>
+                      <div className="skeleton" style={{ height:"10px", width:"60px", margin:"16px 16px 8px" }} />
+                      <div className="skeleton" style={{ height:"18px", width:"70%", margin:"0 16px 6px" }} />
+                      <div className="skeleton" style={{ height:"12px", width:"90%", margin:"0 16px 12px" }} />
+                      <div style={{ display:"flex", gap:"6px", padding:"0 16px 12px" }}>
+                        <div className="skeleton" style={{ height:"24px", width:"60px" }} />
+                        <div className="skeleton" style={{ height:"24px", width:"50px" }} />
+                        <div className="skeleton" style={{ height:"24px", width:"55px" }} />
+                      </div>
+                      <div style={{ display:"flex", gap:"6px", padding:"0 16px 16px" }}>
+                        <div className="skeleton" style={{ height:"32px", flex:1 }} />
+                        <div className="skeleton" style={{ height:"32px", flex:1 }} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
               {hospitalsError && !hospitalsLoading && (
@@ -1346,22 +1120,72 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background:"#0f172a" }} className="py-8 sm:py-10 px-4 sm:px-8">
-        <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm font-black" style={{ background:"linear-gradient(135deg,#16a34a,#059669)" }}>+</div>
-            <span className="display text-white font-extrabold text-[16px]">MediLife</span>
+      <footer style={{ background:"#0f172a" }} className="py-10 sm:py-14 px-4 sm:px-8">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-10">
+            <div className="col-span-2 sm:col-span-1">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm font-black" style={{ background:"linear-gradient(135deg,#16a34a,#059669)" }}>+</div>
+                <span className="display text-white font-extrabold text-[16px]">MediLife</span>
+              </div>
+              <p className="text-slate-500 text-[12px] leading-relaxed max-w-xs">AI-powered hospital intelligence. Find the right care, right now.</p>
+            </div>
+            <div>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] mb-3">Quick Links</p>
+              <div className="flex flex-col gap-2">
+                {[["#hospitals","Find Hospitals"],["#emergency","Emergency SOS"],["/profile","Health Profile"]].map(([h,l]) => (
+                  <a key={h} href={h} className="text-slate-500 text-[12px] hover:text-white transition-colors">{l}</a>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] mb-3">Features</p>
+              <div className="flex flex-col gap-2">
+                {["Medi AI Chat","Voice Input","Bed Booking","Live Availability"].map(f => (
+                  <span key={f} className="text-slate-500 text-[12px]">{f}</span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] mb-3">Emergency</p>
+              <a href="tel:112" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold text-white mb-3" style={{ background:"linear-gradient(135deg,#dc2626,#991b1b)" }}>📞 Call 112</a>
+              <p className="text-slate-600 text-[11px] leading-relaxed">For life-threatening emergencies, always call 112 first.</p>
+            </div>
           </div>
-          <p className="text-slate-600 text-[11px] max-w-xs sm:max-w-none">© 2025 MediLife · Not a substitute for professional medical advice · Call 112 in emergencies</p>
-          <div className="flex gap-4 text-[12px] text-slate-500">
-            {["Privacy","Terms","Contact"].map((l) => <a key={l} href="#" className="hover:text-white transition-colors">{l}</a>)}
+          <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <p className="text-slate-600 text-[11px]">© 2025 MediLife · Not a substitute for professional medical advice</p>
+            <div className="flex gap-5 text-[12px] text-slate-500">
+              {["Privacy Policy","Terms of Service","Contact Us"].map((l) => <a key={l} href="#" className="hover:text-white transition-colors">{l}</a>)}
+            </div>
           </div>
         </div>
       </footer>
 
+      {/* ── FLOATING MOBILE EMERGENCY FAB ── */}
+      {isMobile && (
+        <button
+          onClick={() => setEmergencyOpen(true)}
+          style={{
+            position: "fixed", bottom: "20px", left: "20px", zIndex: 49,
+            width: "52px", height: "52px", borderRadius: "18px",
+            background: "linear-gradient(135deg,#dc2626,#991b1b)",
+            boxShadow: "0 8px 28px rgba(220,38,38,0.5), 0 2px 8px rgba(0,0,0,0.15)",
+            border: "none", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "22px", color: "#fff",
+            animation: "pulseRing 2s ease-in-out infinite",
+          }}
+          aria-label="Emergency SOS"
+        >
+          🚨
+        </button>
+      )}
+
       {/* ── WIDGETS ── */}
       <ChatWidget
         onHospitalSelect={handleHospitalSelectFromChat}
+        onFilterChange={(f) => setFilter(f)}
+        onEmergency={() => setEmergencyOpen(true)}
         userAddress={userAddress}
         userLat={userLocation?.lat}
         userLng={userLocation?.lng}
@@ -1372,6 +1196,26 @@ export default function LandingPage() {
       />
       <MapLocationPicker open={showMapPicker} onClose={() => setShowMapPicker(false)} onConfirm={handleManualLocation} initialLat={userLocation?.lat} initialLng={userLocation?.lng} />
       <EmergencyModal open={emergencyOpen} onClose={() => setEmergencyOpen(false)} hospitals={hospitals} />
+
+      {/* ── BACK TO TOP ── */}
+      {showBackToTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="back-to-top"
+          aria-label="Back to top"
+          style={{
+            position: "fixed", bottom: isMobile ? "80px" : "100px", left: isMobile ? "20px" : "28px", zIndex: 45,
+            width: "40px", height: "40px", borderRadius: "12px",
+            background: "rgba(255,255,255,0.9)", backdropFilter: "blur(8px)",
+            border: "1.5px solid #e2e8f0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "16px", color: "#64748b",
+            transition: "all 0.2s",
+          }}
+        >
+          ↑
+        </button>
+      )}
     </div>
   );
 }

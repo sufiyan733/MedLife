@@ -15,9 +15,9 @@ export async function POST(req) {
     const { visibleHospitals = [], activeFilter, selectedHospital, totalHospitalsShown } = pageContext;
 
     /* ── Compact hospital data — pipe-separated, minimal tokens ── */
-    const status = (a, t) => { const p = a/t*100; return p>25?"OK":p>8?"LO":"CR"; };
+    const status = (a, t) => { const p = a / t * 100; return p > 25 ? "OK" : p > 8 ? "LO" : "CR"; };
     const hospitalLines = visibleHospitals.slice(0, 5).map((h, i) =>
-      `H${i+1}|${h.id}|${h.name}|${h.distanceKm!=null?h.distanceKm.toFixed(1)+"km":"?"}|w${h.waitTime}m|r${h.rating}|${h.emergency?"ER":"no"}|B${h.bedsAvailable}/${h.bedsTotal}[${status(h.bedsAvailable,h.bedsTotal)}]|I${h.icuAvailable}/${h.icuTotal}[${status(h.icuAvailable,h.icuTotal)}]|${(h.specialties||[]).slice(0,3).join(",")}`
+      `H${i + 1}|${h.id}|${h.name}|${h.distanceKm != null ? h.distanceKm.toFixed(1) + "km" : "?"}|w${h.waitTime}m|r${h.rating}|${h.emergency ? "ER" : "no"}|B${h.bedsAvailable}/${h.bedsTotal}[${status(h.bedsAvailable, h.bedsTotal)}]|I${h.icuAvailable}/${h.icuTotal}[${status(h.icuAvailable, h.icuTotal)}]|${(h.specialties || []).slice(0, 3).join(",")}`
     ).join("\n");
 
     const SYSTEM_PROMPT = `You are Medi, MediLife's hospital assistant. Smart, warm, direct.
@@ -25,8 +25,8 @@ export async function POST(req) {
 LANG: Match user's language. Hindi/Hinglish→Hinglish (Roman only, NEVER Devanagari). English→English.
 TONE: Casual=casual, serious symptoms=urgent+direct.
 
-LOC: ${address ?? "unknown"}${lat&&lng?` (${lat.toFixed(3)},${lng.toFixed(3)})`:""} granted:${locationGranted?"Y":"N"}
-FILTER:${activeFilter??"All"} SHOWN:${totalHospitalsShown??0} SELECTED:${selectedHospital?.name??"none"}
+LOC: ${address ?? "unknown"}${lat && lng ? ` (${lat.toFixed(3)},${lng.toFixed(3)})` : ""} granted:${locationGranted ? "Y" : "N"}
+FILTER:${activeFilter ?? "All"} SHOWN:${totalHospitalsShown ?? 0} SELECTED:${selectedHospital?.name ?? "none"}
 
 HOSPITALS:
 ${hospitalLines || "none loaded"}

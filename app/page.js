@@ -973,7 +973,7 @@ export default function LandingPage() {
             <span className="display text-[16px] sm:text-[17px] font-extrabold text-slate-900">Medi<span style={{ color: "#16a34a" }}>Life</span></span>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-[13px] font-medium text-slate-400">
-            {[["#hospitals", "Hospitals"], ["#emergency", "Emergency"], ["/symptom-checker", "Symptom Checker"], ["/appointments", "Appointments"]].map(([href, label]) => (
+            {[["#hospitals", "Hospitals"], ["#emergency", "Emergency"], ["/symptom-checker", "Symptom Checker"]].map(([href, label]) => (
               <a key={href} href={href} className="hover:text-slate-800 transition-colors">{label}</a>
             ))}
           </nav>
@@ -997,7 +997,7 @@ export default function LandingPage() {
         </div>
         {mobileMenuOpen && (
           <div className="md:hidden mobile-menu-in bg-white border-t border-slate-100 px-4 py-3 flex flex-col gap-2">
-            {[["#hospitals", "🏥 Hospitals"], ["#emergency", "🚨 Emergency"], ["/symptom-checker", "🩺 Symptom Checker"], ["/appointments", "📋 Appointments"], ["/my-bookings", "📖 My Bookings"]].map(([href, label]) => (
+            {[["#hospitals", "🏥 Hospitals"], ["#emergency", "🚨 Emergency"], ["/symptom-checker", "🩺 Symptom Checker"], ["/my-bookings", "📖 My Bookings"]].map(([href, label]) => (
               <a key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="py-2.5 px-3 rounded-xl text-[13px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">{label}</a>
             ))}
             {!sessionLoading && !isLoggedIn && <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)} className="py-2.5 px-3 rounded-xl text-[13px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">Sign in</Link>}

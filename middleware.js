@@ -7,7 +7,7 @@ export function middleware(request) {
   const session = request.cookies.get("better-auth.session_token");
 
   // Protected routes — require login
-  const protectedPaths = ["/admin", "/appointments", "/my-bookings", "/profile"];
+  const protectedPaths = ["/appointments", "/my-bookings", "/profile"];
   const isProtected = protectedPaths.some(p => pathname.startsWith(p));
 
   if (!session && isProtected) {
@@ -22,5 +22,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/sign-in", "/sign-up", "/appointments/:path*", "/my-bookings/:path*", "/profile/:path*"],
+  matcher: ["/sign-in", "/sign-up", "/appointments/:path*", "/my-bookings/:path*", "/profile/:path*"],
 };

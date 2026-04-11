@@ -322,7 +322,7 @@ export function ChatWidget({
 }) {
   const INITIAL_MSG = {
     role: "assistant",
-    content: "Hi, I'm Medi 👋\n\nTell me your symptoms — I'll find the right hospital instantly. No forms, no hassle.",
+    content: "namaste mai hu medi 👋\n\naapni takleef bataiye mujhe",
     chips: [
       { label: "🫀 Chest pain", text: "I have chest pain", urgent: true },
       { label: "🧠 Headache", text: "severe headache and dizziness", urgent: true },

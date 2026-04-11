@@ -44,7 +44,7 @@ function HospitalModal({ hospital, onClose }) {
           <button className="adm-modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="adm-modal-body">
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:18}}>
+          <div className="adm-modal-grid">
             {[
               {label:'Available Beds', value:hospital.beds, max:hospital.maxBeds, color:bedColor},
               {label:'ICU Beds', value:hospital.icu, max:hospital.maxIcu, color:hospital.icu===0?'#ff3366':'#00a8ff'},
@@ -145,7 +145,7 @@ export default function AdminPage() {
       case 'Network': return (
         <div className="adm-view">
           <div className="adm-sec-label">Network Infrastructure</div>
-          <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14}}>
+          <div className="adm-network-grid">
             {[
               {label:'Mumbai Region',nodes:247,status:'Operational',color:'#00ff9d',latency:'8ms'},
               {label:'Delhi Region',nodes:189,status:'Operational',color:'#00ff9d',latency:'12ms'},

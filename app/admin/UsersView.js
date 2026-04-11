@@ -25,7 +25,7 @@ export default function UsersView({ showToast }) {
       <div className="adm-sec-label">User Management</div>
 
       {/* Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 14 }}>
+      <div className="adm-users-filter-grid">
         {[
           { label: 'Total Users', count: counts.all, color: '#00a8ff', icon: '👥' },
           { label: 'Patients', count: counts.patient, color: '#00ff9d', icon: '🏥' },

@@ -409,12 +409,20 @@
 .adm-ring-legend-item { display:flex; align-items:center; gap:8px; font-size:12px; }
 .adm-ring-legend-dot { width:10px; height:10px; border-radius:3px; }
 
+/* ─── ADDED LAYOUT CLASSES ───────────────────────────────── */
+.adm-network-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }
+.adm-modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+.adm-appt-filter-grid { display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin-bottom:14px; }
+.adm-users-filter-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:14px; }
+
 /* ─── RESPONSIVE ──────────────────────────────────────── */
 @media (max-width:1200px) {
   .adm-stats-grid { grid-template-columns:repeat(2, 1fr); }
   .adm-mid-grid { grid-template-columns:1fr; }
   .adm-bottom-grid { grid-template-columns:1fr 1fr; }
   .adm-analytics-grid { grid-template-columns:1fr; }
+  .adm-appt-filter-grid { grid-template-columns:repeat(3, 1fr); }
+  .adm-users-filter-grid { grid-template-columns:repeat(2, 1fr); }
 }
 @media (max-width:900px) {
   .adm-sidebar { width:56px; }
@@ -423,8 +431,27 @@
   .adm-nav-item { padding:12px; justify-content:center; }
   .adm-bottom-grid { grid-template-columns:1fr; }
   .adm-hosp-cards { grid-template-columns:1fr; }
+  .adm-network-grid { grid-template-columns:repeat(2, 1fr); }
+  .adm-topbar { padding:0 16px; gap:8px; }
+  .adm-appt-filter-grid { grid-template-columns:repeat(2, 1fr); }
 }
 @media (max-width:600px) {
+  .adm-main { width: 100%; overflow-x: hidden; }
+  .adm-topbar { padding:12px; gap:8px; height:auto; flex-wrap:wrap; position:static; }
+  .adm-topbar-sep { display:none; }
+  .adm-topbar > div:first-child { flex:1; min-width:100%; }
+  .adm-page-title { display:none; }
+  .adm-topbar-btn { font-size:10px; padding:6px 10px; justify-content:center; flex:1; }
+  .adm-topbar-chip { font-size:10px; padding:4px 8px; flex:1; justify-content:center; }
   .adm-stats-grid { grid-template-columns:1fr; }
   .adm-content { padding:14px; gap:12px; }
+  .adm-network-grid { grid-template-columns:1fr; }
+  .adm-modal-grid { grid-template-columns:1fr; }
+  .adm-appt-filter-grid { grid-template-columns:1fr; }
+  .adm-users-filter-grid { grid-template-columns:1fr; }
+  
+  /* Make tables readable */
+  .adm-panel { overflow-x: auto; }
+  .adm-hosp-table th, .adm-hosp-table td { padding: 10px 8px; font-size: 11px; }
+  .adm-data-table th, .adm-data-table td { padding: 10px 8px; font-size: 11px; }
 }

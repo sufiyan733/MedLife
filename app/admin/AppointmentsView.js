@@ -25,7 +25,7 @@ export default function AppointmentsView({ showToast }) {
       <div className="adm-sec-label">Appointment Management</div>
 
       {/* Summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10, marginBottom: 14 }}>
+      <div className="adm-appt-filter-grid">
         {[
           { label: 'Total', count: counts.all, color: '#00a8ff' },
           { label: 'Confirmed', count: counts.confirmed, color: '#00ff9d' },

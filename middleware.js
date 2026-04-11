@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;
-  
+
   // Better Auth sets a cookie named "better-auth.session_token"
   const session = request.cookies.get("better-auth.session_token");
 
   // Protected routes — require login
-  const protectedPaths = ["/appointments", "/my-bookings", "/profile"];
+  const protectedPaths = [];
   const isProtected = protectedPaths.some(p => pathname.startsWith(p));
 
   if (!session && isProtected) {
@@ -22,5 +22,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/sign-in", "/sign-up", "/appointments/:path*", "/my-bookings/:path*", "/profile/:path*"],
+  matcher: ["/sign-in", "/sign-up"],
 };

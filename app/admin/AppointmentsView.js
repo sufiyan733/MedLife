@@ -1,11 +1,43 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { APPOINTMENTS } from './data';
 
 export default function AppointmentsView({ showToast }) {
   const [appts, setAppts] = useState(APPOINTMENTS);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  const [dbStats, setDbStats] = useState(null);
+
+  // Fetch real appointments from DB
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/stats');
+        const data = await res.json();
+        if (data.success) {
+          setDbStats(data.stats);
+          // Merge real appointments in front of mock data
+          const real = (data.recentAppointments || []).map(a => ({
+            id: a.id,
+            patient: a.patient_name,
+            phone: '—',
+            hospital: a.hospital_name,
+            dept: a.department,
+            date: a.date,
+            time: a.time_slot,
+            status: a.status,
+            token: a.id,
+            source: 'db',
+          }));
+          if (real.length > 0) {
+            // Deduplicate by id
+            const ids = new Set(real.map(r => r.id));
+            setAppts([...real, ...APPOINTMENTS.filter(a => !ids.has(a.id))]);
+          }
+        }
+      } catch {}
+    })();
+  }, []);
 
   const filtered = appts.filter(a => {
     if (filter !== 'all' && a.status !== filter) return false;

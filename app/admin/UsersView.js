@@ -1,11 +1,44 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { USERS } from './data';
 
 export default function UsersView({ showToast }) {
   const [users, setUsers] = useState(USERS);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+
+  // Fetch real users from DB
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/users');
+        const data = await res.json();
+        if (data.success && data.users.length > 0) {
+          const real = data.users.map(u => ({
+            id: u.id,
+            name: u.name || 'Unknown User',
+            email: u.email,
+            role: u.role,
+            joined: u.created_at ? new Date(u.created_at).toISOString().split('T')[0] : '—',
+            appts: u.appts || 0,
+            lastActive: u.updated_at ? timeSince(new Date(u.updated_at)) : '—',
+            avatar: u.avatar,
+            source: 'db',
+          }));
+          const ids = new Set(real.map(r => r.email));
+          setUsers([...real, ...USERS.filter(u => !ids.has(u.email))]);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  function timeSince(date) {
+    const s = Math.floor((new Date() - date) / 1000);
+    if (s < 60) return 'Just now';
+    if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+    if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+    return `${Math.floor(s / 86400)}d ago`;
+  }
 
   const filtered = users.filter(u => {
     if (roleFilter !== 'all' && u.role !== roleFilter) return false;

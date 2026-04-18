@@ -781,7 +781,7 @@ function UserMenu({ session }) {
             <p className="text-slate-400 text-[11px] truncate">{user.email}</p>
           </div>
           <div className="p-1.5">
-            {[{ href: "/profile", label: "👤 My Profile" }, { href: "/appointments", label: "📋 Appointments" }, { href: "/my-bookings", label: "📖 My Bookings" }, { href: "/symptom-checker", label: "🩺 Symptom Checker" }, { href: "/dashboard", label: "📊 Dashboard" }].map((item) => (
+            {[{ href: "/profile", label: "👤 My Profile" }, { href: "/appointments", label: "📋 Appointments" }, { href: "/my-bookings", label: "📖 My Bookings" }, { href: "/symptom-checker", label: "🩺 Symptom Checker" }, { href: "/hospital/dashboard", label: "🏥 Hospital Portal" }, { href: "/hospital", label: "➕ Register Hospital" }, { href: "/dashboard", label: "📊 Admin Panel" }].map((item) => (
               <Link key={item.href + item.label} href={item.href} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12.5px] text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all">{item.label}</Link>
             ))}
             <div className="h-px bg-slate-100 my-1" />
@@ -1258,6 +1258,33 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── FOR HOSPITALS CTA ── */}
+      <section className="py-14 sm:py-20 px-4 sm:px-6" style={{ background: "linear-gradient(180deg, #f8faf9, #f0fdf4)" }}>
+        <div className="max-w-[1200px] mx-auto text-center">
+          <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.25em] mb-3">For Hospital Partners</p>
+          <h2 className="display text-[24px] sm:text-3xl lg:text-[38px] font-extrabold text-slate-900 mb-3 leading-tight">Run your hospital on MediLife</h2>
+          <p className="text-slate-400 text-[14px] sm:text-[15px] mb-10 max-w-lg mx-auto leading-relaxed">Register your hospital, manage beds in real-time, and let patients find you instantly through our AI-powered network.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
+            {[
+              { icon: "🏥", title: "Register", desc: "5-min setup wizard with departments, beds, and location mapping", href: "/hospital" },
+              { icon: "📊", title: "Dashboard", desc: "Real-time bed management, appointment tracking, and staff overview", href: "/hospital/dashboard" },
+              { icon: "🤖", title: "AI Matching", desc: "Our AI auto-routes patients to your hospital based on specialty and availability", href: "/admin" },
+            ].map(card => (
+              <Link key={card.title} href={card.href}
+                className="bg-white rounded-2xl p-6 text-left hover:-translate-y-1 hover:shadow-lg transition-all group"
+                style={{ border: "1.5px solid rgba(0,0,0,0.06)", boxShadow: "0 2px 12px rgba(0,0,0,0.03)" }}>
+                <span className="text-3xl block mb-3">{card.icon}</span>
+                <h3 className="display font-extrabold text-slate-900 text-[15px] mb-1 group-hover:text-emerald-600 transition-colors">{card.title}</h3>
+                <p className="text-slate-400 text-[12px] leading-relaxed">{card.desc}</p>
+              </Link>
+            ))}
+          </div>
+          <Link href="/hospital" className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-[14px] font-bold text-white transition-all hover:-translate-y-1 hover:shadow-xl" style={{ background: "linear-gradient(135deg,#16a34a,#059669)", boxShadow: "0 8px 32px rgba(22,163,74,0.3)" }}>
+            🏥 Register Your Hospital — Free
+          </Link>
+        </div>
+      </section>
+
       {/* ── EMERGENCY BANNER ── */}
       <section id="emergency" className="py-14 sm:py-20 relative overflow-hidden" style={{ background: "linear-gradient(135deg,#dc2626,#b91c1c,#991b1b)" }}>
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(255,255,255,0.03) 0%, transparent 50%)" }} />
@@ -1275,7 +1302,7 @@ export default function LandingPage() {
       {/* ── FOOTER ── */}
       <footer style={{ background: "#0f172a" }} className="py-10 sm:py-14 px-4 sm:px-8">
         <div className="max-w-[1400px] mx-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 mb-10">
             <div className="col-span-2 sm:col-span-1">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm font-black" style={{ background: "linear-gradient(135deg,#16a34a,#059669)" }}>+</div>
@@ -1296,6 +1323,14 @@ export default function LandingPage() {
               <div className="flex flex-col gap-2">
                 {["Medi AI Chat", "Voice Input", "Bed Booking", "Live Availability", "Appointments", "Symptom Checker"].map(f => (
                   <span key={f} className="text-slate-500 text-[12px]">{f}</span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] mb-3">For Hospitals</p>
+              <div className="flex flex-col gap-2">
+                {[["/hospital", "Register Hospital"], ["/hospital/dashboard", "Hospital Portal"], ["/admin", "Admin Panel"]].map(([h, l]) => (
+                  <a key={h} href={h} className="text-slate-500 text-[12px] hover:text-white transition-colors">{l}</a>
                 ))}
               </div>
             </div>
